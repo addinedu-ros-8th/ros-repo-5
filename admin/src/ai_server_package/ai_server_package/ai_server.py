@@ -54,7 +54,7 @@ class commandPublisher(Node):
     def __init__(self, pinky_receiver):
         super().__init__(f"command_publisher{pinky_receiver.pinky_num}")
         self.receiver = pinky_receiver
-        self.publisher = self.create_publisher(Cmd, 'pinky_xyp', 10)
+        self.publisher = self.create_publisher(Cmd, '/drive', 10)
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.latest_frame = None
