@@ -18,7 +18,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'drive_router_node = controll_server_pkg.drive_router_node:main'
+            'drive_router_node = controll_server_pkg.drive_router_node:main',
+            'admin_gui_service = controll_server_pkg.admin_gui_service:main'
         ],
     },
 )
