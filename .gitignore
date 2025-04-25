@@ -216,4 +216,5 @@ colcon.meta
 Thumbs.db
 .idea/
 *.egg-info/
+*.jpg
 
