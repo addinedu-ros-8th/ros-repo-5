@@ -7,10 +7,10 @@ import os
 from datetime import datetime
 import pickle
 
-PORT = 6000
+PORT = 6001
 MAX_PACKET_SIZE = 65536
 
-# 📦 Pickle로부터 카메라 보정 파라미터 불러오기
+# Pickle로부터 카메라 보정 파라미터 불러오기
 with open("/home/pepsi/dev_ws/ros-repo-5/admin/src/calib_images/calibration_data.pickle", "rb") as f:
     calib_data = pickle.load(f)
 
@@ -52,7 +52,7 @@ class VideoReceiver:
         self.running = False
 
 def main():
-    pinky1_receiver = VideoReceiver(1, port=6000)
+    pinky1_receiver = VideoReceiver(1, port=6001)
     pinky1_thread = threading.Thread(target=pinky1_receiver.run)
     pinky1_thread.start()
 
@@ -62,7 +62,6 @@ def main():
     save_base = '/home/pepsi/dev_ws/ros-repo-5/admin/dataset/video'
     os.makedirs(save_base, exist_ok=True)
     fps = 30.0
-    zoom_factor = 0.5  # 줌아웃 배율 (0.5 = 반으로 축소)
 
     try:
         while True:
