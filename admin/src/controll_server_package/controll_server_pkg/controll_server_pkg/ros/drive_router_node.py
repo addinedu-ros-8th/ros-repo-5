@@ -19,7 +19,6 @@ class DriveRouterNode(Node):
         )
 
 def main(args=None):
-    rclpy.init(args=args)
     node = DriveRouterNode()
     rclpy.spin(node)
     node.destroy_node()

@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages  
 
 package_name = 'controll_server_pkg'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=find_packages(include=[package_name, f"{package_name}.*"]),  
     data_files=[
         ('share/' + package_name, ['package.xml']),
     ],
@@ -18,8 +18,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'drive_router_node = controll_server_pkg.drive_router_node:main',
-            'admin_gui_service = controll_server_pkg.admin_gui_service:main'
+            'main_launcher = controll_server_pkg.main_launcher:main'
         ],
     },
 )

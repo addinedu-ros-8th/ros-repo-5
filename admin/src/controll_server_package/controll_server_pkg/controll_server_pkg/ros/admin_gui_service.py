@@ -14,7 +14,6 @@ class AdminServiceNode(Node):
         return response
 
 def main(args=None):
-    rclpy.init(args=args)
     node = AdminServiceNode()
     rclpy.spin(node)
     node.destroy_node()
