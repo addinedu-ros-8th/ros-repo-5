@@ -217,4 +217,5 @@ Thumbs.db
 .idea/
 *.egg-info/
 *.jpg
+*mp4
 
