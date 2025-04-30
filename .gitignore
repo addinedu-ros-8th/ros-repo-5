@@ -218,4 +218,7 @@ Thumbs.db
 *.egg-info/
 *.jpg
 *mp4
+*.txt
+*.json
+*.yaml
 
