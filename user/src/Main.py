@@ -10,7 +10,7 @@ import time
 ip = "192.168.0.56"
 port = 9000
 
-from_class = uic.loadUiType("Main.ui")[0]
+from_class = uic.loadUiType("/home/vit/dev_ws/project/ros-repo-5/user/src/Main.ui")[0]
 
 class WindowClass(QMainWindow, from_class):
     def __init__(self):
