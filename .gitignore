@@ -172,3 +172,53 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+install/
+log/
+
+# === Python 기본 ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.~*
+
+# === 가상환경 ===
+venv/
+env/
+.final_venv/
+.venv/
+ENV/
+
+# === ROS2 colcon 빌드 결과물 ===
+build/
+install/
+log/
+
+# === CMake 관련 ===
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# === VS Code 설정 ===
+.vscode/
+
+# === ROS2 설정 캐시 ===
+*.launch.py~
+*.yaml~
+colcon.meta
+.colcon/
+
+# === 기타 시스템 파일 ===
+.DS_Store
+Thumbs.db
+.idea/
+*.egg-info/
+*.jpg
+*mp4
+*.txt
+*.json
+*.yaml
+
