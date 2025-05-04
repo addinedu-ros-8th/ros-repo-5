@@ -52,7 +52,7 @@ class VideoReceiver:
         self.running = False
 
 def main():
-    pinky1_receiver = VideoReceiver(1, port=6000)
+    pinky1_receiver = VideoReceiver(1, port=9999)
     pinky1_thread = threading.Thread(target=pinky1_receiver.run)
     pinky1_thread.start()
 
@@ -79,6 +79,9 @@ def main():
             key = cv2.waitKey(1) & 0xFF
             if key == 27:  # ESC → 종료
                 break
+            elif key == ord('d'):
+                print("촬영 완료")
+                cv2.imwrite(f"/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/dataset/car_detection/od/driving_recording_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png", undistorted)
             elif key == ord('s'):  # s → 녹화 on/off 전환
                 recording = not recording
                 if recording:
