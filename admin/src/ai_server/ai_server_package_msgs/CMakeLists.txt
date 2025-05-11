@@ -14,7 +14,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/CmdAndPinkyNum.msg"
+  "msg/YoloSegResult.msg"
+  "msg/DetectionWithPinky.msg"
 )
 
 if(BUILD_TESTING)

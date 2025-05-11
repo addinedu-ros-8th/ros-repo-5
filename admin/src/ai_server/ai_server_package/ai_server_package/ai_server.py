@@ -1,15 +1,15 @@
 import rclpy
 from rclpy.node import Node
-from ai_server_package_msgs.msg import CmdAndPinkyNum as Cmd
+from ai_server_package_msgs.msg import DetectionWithPinky, YoloSegResult
 from rclpy.executors import MultiThreadedExecutor
 
 import socket
 import zlib
 import cv2
-import numpy as np
 import threading
-import os
-from datetime import datetime
+import numpy as np
+from ultralytics import YOLO
+import torch
 
 # 수신 포트 설정
 PORT = 9999
@@ -54,22 +54,45 @@ class commandPublisher(Node):
     def __init__(self, pinky_receiver):
         super().__init__(f"command_publisher{pinky_receiver.pinky_num}")
         self.receiver = pinky_receiver
-        self.publisher = self.create_publisher(Cmd, '/drive', 10)
+        self.publisher = self.create_publisher(DetectionWithPinky, '/drive', 10)
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.latest_frame = None
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.yolo_model = YOLO("admin/src/ai_server/ai_train/runs/segment/yolov9_epoch200/weights/best.pt").to(device)
 
     def timer_callback(self):
         frame = self.receiver.get_frame()
         if frame is None:
             return
         
+        results = self.yolo_model(frame)
+        boxes = results[0].boxes
+        masks = results[0].masks
+        
         self.latest_frame = frame
 
-        msg = Cmd()
-        msg.x = 1.0
-        msg.y = 2.0
+        msg = DetectionWithPinky()
         msg.pinky_num = self.receiver.pinky_num
+
+        for i in range(len(boxes)):
+            box = boxes[i]
+
+            result = YoloSegResult()
+            result.class_id = int(box.cls.item())
+            result.score = float(box.conf.item())
+
+            xywh = box.xywh[0].tolist()
+            result.bbox = [float(v) for v in xywh]
+
+            if masks is not None:
+                mask_tensor = masks.data[i]  # (H, W)
+                mask_flat = mask_tensor.flatten().tolist()
+                result.mask = mask_flat[:200]  # 너무 크면 일부만 전송
+            else:
+                result.mask = []
+
+        msg.results.append(result)
         self.publisher.publish(msg)
 
 
@@ -84,7 +107,6 @@ def main():
     pinky2_thread = threading.Thread(target=pinky2_receiver.run)
     pinky2_thread.start()
 
-     # 🧠 ROS 노드 실행
     node1 = commandPublisher(pinky1_receiver)
     node2 = commandPublisher(pinky2_receiver)
 
@@ -100,7 +122,6 @@ def main():
                 cv2.imshow("Pinky2", node2.latest_frame)
 
             if cv2.waitKey(1) == 27:
-                print("🛑 ESC → 종료 요청")
                 rclpy.shutdown()
                 break
 
@@ -120,7 +141,6 @@ def main():
         pinky2_thread.join()
 
         cv2.destroyAllWindows()
-        print("✅ [DONE] 종료 완료")
 
 
 
