@@ -11,7 +11,7 @@ PORT = 6000
 MAX_PACKET_SIZE = 65536
 
 # Pickle로부터 카메라 보정 파라미터 불러오기
-with open("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/calib_images/calibration_data.pickle", "rb") as f:
+with open("/home/vit/dev_ws/project/ros-repo-5/admin/src/ai_server/ai_train/calib_images/calibration_data.pickle", "rb") as f:
     calib_data = pickle.load(f)
 
 camera_matrix = calib_data["camera_matrix"]
@@ -52,14 +52,14 @@ class VideoReceiver:
         self.running = False
 
 def main():
-    pinky1_receiver = VideoReceiver(1, port=9999)
+    pinky1_receiver = VideoReceiver(1, port=6000)
     pinky1_thread = threading.Thread(target=pinky1_receiver.run)
     pinky1_thread.start()
 
     recording = False
     out = None
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    save_base = '/home/pepsi/dev_ws/ros-repo-5/admin/dataset/video'
+    save_base = '/home/vit/dev_ws/project/ros-repo-5/admin/dataset/video'
     os.makedirs(save_base, exist_ok=True)
     fps = 30.0
 

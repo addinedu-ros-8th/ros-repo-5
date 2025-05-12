@@ -2,7 +2,7 @@ import cv2
 from ultralytics import YOLO
 
 # 모델 로드
-model = YOLO('/home/vit/dev_ws/road_seg_project/yolov8m-seg200/weights/best.pt')  # 또는 절대경로로 지정
+model = YOLO('/home/vit/dev_ws/yolov8m-det300/weights/best.pt')  # 또는 절대경로로 지정
 
 # 웹캠 열기 (0번 카메라)
 cap = cv2.VideoCapture(0)
