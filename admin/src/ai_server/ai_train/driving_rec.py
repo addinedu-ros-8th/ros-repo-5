@@ -11,7 +11,7 @@ PORT = 6000
 MAX_PACKET_SIZE = 65536
 
 # Pickle로부터 카메라 보정 파라미터 불러오기
-with open("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/calib_images/calibration_data.pickle", "rb") as f:
+with open("/home/vit/dev_ws/project/ros-repo-5/admin/src/ai_server/ai_train/calib_images/calibration_data.pickle", "rb") as f:
     calib_data = pickle.load(f)
 
 camera_matrix = calib_data["camera_matrix"]
@@ -59,7 +59,7 @@ def main():
     recording = False
     out = None
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    save_base = '/home/pepsi/dev_ws/ros-repo-5/admin/dataset/video'
+    save_base = '/home/vit/dev_ws/project/ros-repo-5/admin/dataset/video'
     os.makedirs(save_base, exist_ok=True)
     fps = 30.0
 
@@ -79,6 +79,9 @@ def main():
             key = cv2.waitKey(1) & 0xFF
             if key == 27:  # ESC → 종료
                 break
+            elif key == ord('d'):
+                print("촬영 완료")
+                cv2.imwrite(f"/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/dataset/car_detection/od/driving_recording_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png", undistorted)
             elif key == ord('s'):  # s → 녹화 on/off 전환
                 recording = not recording
                 if recording:

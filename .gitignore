@@ -221,4 +221,9 @@ Thumbs.db
 *.txt
 *.json
 *.yaml
-
+*.png
+*.pt
+*.pth
+*.cache
+*.csv
+*.npy
