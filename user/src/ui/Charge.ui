@@ -35,12 +35,9 @@
 </string>
        </property>
        <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
-       <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
-       </property>
-       <widget class="QToolButton" name="ChargeBtn">
+       <widget class="QToolButton" name="Undobtn">
         <property name="geometry">
          <rect>
           <x>410</x>
@@ -69,6 +66,17 @@ padding: 5px 10px;
           <width>81</width>
           <height>71</height>
          </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLineEdit {
+    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/logo.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}
+</string>
         </property>
        </widget>
       </widget>
@@ -132,7 +140,7 @@ padding: 5px 10px;</string>
        <string>현재 잔액: </string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit">
+     <widget class="QLineEdit" name="nowmoney">
       <property name="geometry">
        <rect>
         <x>120</x>
@@ -140,6 +148,9 @@ padding: 5px 10px;</string>
         <width>211</width>
         <height>41</height>
        </rect>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton">
@@ -196,8 +207,8 @@ padding: 5px 10px;</string>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>160</y>
+      <x>150</x>
+      <y>150</y>
       <width>271</width>
       <height>61</height>
      </rect>
