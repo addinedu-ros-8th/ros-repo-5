@@ -1,32 +1,36 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
-from ui_utils import load_state, show_message
-from ui_utils import load_state, show_message
-from call import CallPage
-from destination import destinationPage
-from riding import ridingPage
-from driving import drivingPage
-from end import endPage
-from charge_page import EnterChargePage
+from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QVBoxLayout, QWidget
+from PyQt6 import uic
 
-class CallPage(QWidget):
-    def __init__(self, saved_data):
+from_class = uic.loadUiType("/home/lim/dev_ws/addintexi/UserGUI/ui/1_call.ui")[0]
+
+class CallWindow(QMainWindow, from_class):
+    def __init__(self):
         super().__init__()
-        self.saved_data = saved_data
-        self.init_ui()
+        self.setupUi(self)
+        
+        # 애플리케이션 전역에서 선택된 아이콘 번호 및 좌표 가져오기
+        selected_icon_number = QApplication.instance().property("selected_icon_number")
+        selected_coordinates = QApplication.instance().property("selected_coordinates")
+        
+        # 선택된 아이콘 정보를 UI에 표시
+        if hasattr(self, "selectedIconLabel") and hasattr(self, "selectedCoordinatesLabel"):
+            if selected_icon_number and selected_coordinates:
+                self.selectedIconLabel.setText(f"선택된 아이콘: {selected_icon_number}")
+                self.selectedCoordinatesLabel.setText(f"좌표: {selected_coordinates}")
+            else:
+                self.selectedIconLabel.setText("선택된 아이콘이 없습니다.")
+                self.selectedCoordinatesLabel.setText("좌표가 지정되지 않았습니다.")
+        else:
+            print("[ERROR] QLabel (selectedIconLabel, selectedCoordinatesLabel) 이 UI 파일에 없습니다.")
 
-    def init_ui(self):
-        self.setWindowTitle("Call Page")
-        layout = QVBoxLayout()
-        self.label = QLabel(f"Call Page - Departure: {self.saved_data.get('departure')}, Destination: {self.saved_data.get('destination')}")
-        self.back_button = QPushButton("Back to Main")
-        self.back_button.clicked.connect(self.go_back)
+        # 다른 페이지로 이동하는 버튼 (예: end 페이지)
+        if hasattr(self, "nextButton"):
+            self.nextButton.clicked.connect(self.move_to_end)
+        else:
+            print("[ERROR] QPushButton (nextButton) 이 UI 파일에 없습니다.")
 
-        layout.addWidget(self.label)
-        layout.addWidget(self.back_button)
-        self.setLayout(layout)
-
-    def go_back(self):
-        from main import MainWindow
-        self.hide()
-        self.main_window = MainWindow()
-        self.main_window.show()
+    def move_to_end(self):
+        from end import EndWindow
+        self.end_window = EndWindow()
+        self.end_window.show()
+        self.close()

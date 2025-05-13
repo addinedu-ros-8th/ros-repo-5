@@ -1,72 +1,84 @@
 from PyQt6.QtWidgets import QLineEdit, QWidget
 from PyQt6.QtCore import QEvent, Qt
-import socket
+import requests
+import json
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QMessageBox
 
+API_SERVER_IP = "192.168.0.32"
+API_SERVER_PORT = 8000
 
 
-# 소켓 연결
-ip = "127.0.0.1"  
-port = 9000  
+# # ----------------------------------------------
+# # RestAPIManage
+# # ----------------------------------------------
+class RestAPIManager:
+    def __init__(self):
+        self.server_ip = API_SERVER_IP
+        self.server_port = API_SERVER_PORT
+        self.base_url = f"http://{self.server_ip}:{self.server_port}"
 
+    def send_post_request(self, endpoint: str, data: dict):
+        """
+        서버로 POST 요청을 전송하고 응답을 반환.
+        """
+        url = f"{self.base_url}{endpoint}"
+        print(f"[INFO] POST 요청 URL: {url}")
+        print(f"[INFO] 요청 데이터: {data}")
 
-# ----------------------------------------------
-# TCP 클라이언트 설정 (소켓)
-# ----------------------------------------------
-class SocketManager:
-    def __init__(self, ip, port):
-        self.server_ip = ip
-        self.server_port = port
-        self.client_socket = None
-        self.connect_to_server()
-
-    def connect_to_server(self):
         try:
-            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect((self.server_ip, self.server_port))
-            print(f"[INFO] 서버 {self.server_ip}:{self.server_port}에 연결됨")
-        except Exception as e:
-            print(f"[ERROR] 서버 연결 실패: {e}")
+            response = requests.post(url, json=data)
+            if response.status_code == 200:
+                print(f"[INFO] 서버 응답: {response.json()}")
+                return response.json()
+            else:
+                print(f"[ERROR] 서버 오류: {response.status_code} - {response.text}")
+                return None
+        except requests.RequestException as e:
+            print(f"[ERROR] 서버와 연결할 수 없습니다: {e}")
+            return None
 
-    def send_message(self, message: str):
-        if self.client_socket:
-            try:
-                self.client_socket.send(message.encode('utf-8'))
-                response = self.client_socket.recv(1024).decode('utf-8')
-                print(f"[서버 응답] {response}")  # 터미널에 서버 응답 출력
-                return response
-            except Exception as e:
-                print(f"[ERROR] 메시지 전송 실패: {e}")
-        else:
-            print("[ERROR] 서버에 연결되지 않음")
+    def send_get_request(self, endpoint: str):
+        """
+        서버로 GET 요청을 전송하고 응답을 반환.
+        """
+        url = f"{self.base_url}{endpoint}"
+        print(f"[INFO] GET 요청 URL: {url}")
 
-    def close_connection(self):
-        if self.client_socket:
-            self.client_socket.close()
-            print("[INFO] 서버 연결이 종료되었습니다.")
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                print(f"[INFO] 서버 응답: {response.json()}")
+                return response.json()
+            else:
+                print(f"[ERROR] 서버 오류: {response.status_code} - {response.text}")
+                return None
+        except requests.RequestException as e:
+            print(f"[ERROR] 서버와 연결할 수 없습니다: {e}")
+            return None
 
-# ----------------------------------------------
-# 색상 변경 기능 (Hover 및 클릭 이벤트 처리)
-# ----------------------------------------------
+# # ----------------------------------------------
+# # 아이콘 및 이미지 설정 모듈화
+# # ----------------------------------------------
 
-# ----------------------------------------------
-# 아이콘 및 이미지 설정 (모듈화)
-# ----------------------------------------------
 class IconHandler:
-    def __init__(self, main_window, icons_info):
+    def __init__(self, main_window, icons_info, icon_coordinates):
         """
         main_window: QMainWindow - 아이콘을 관리할 메인 윈도우
         icons_info: dict - { "Icon1": "Info1", "Icon2": "Info2", ... }
+        icon_coordinates: dict - { "Icon1": (start_x, start_y, dest_x, dest_y), ... }
         """
         self.main_window = main_window
         self.icons_info = icons_info
+        self.icon_coordinates = icon_coordinates  # 아이콘별 좌표 저장
         self.clicked_icon = None  # 클릭된 아이콘 저장
+        self.selected_icon_number = None  # 선택된 아이콘 번호 저장
+        self.selected_coordinates = None  # 선택된 아이콘의 좌표 저장
 
         # 아이콘 설정
         self.setup_icons()
 
     def setup_icons(self):
-        for icon_name, info_name in self.icons_info.items():
+        for icon_number, (icon_name, info_name) in enumerate(self.icons_info.items(), start=1):
             icon = getattr(self.main_window, icon_name)
             info = getattr(self.main_window, info_name)
 
@@ -77,7 +89,7 @@ class IconHandler:
             info.setVisible(False)  # 기본적으로 숨김
 
             # 마우스 이벤트 직접 연결
-            icon.mousePressEvent = lambda event, i=icon: self.set_clicked_icon(i)
+            icon.mousePressEvent = lambda event, num=icon_number: self.set_clicked_icon(num)
             icon.enterEvent = lambda event, i=icon, inf=info: self.on_hover(i, inf)
             icon.leaveEvent = lambda event, i=icon, inf=info: self.on_leave(i, inf)
 
@@ -126,14 +138,30 @@ class IconHandler:
         }
         """
 
-    def set_clicked_icon(self, icon):
-        # 이전 클릭된 아이콘 스타일 초기화
-        if self.clicked_icon and self.clicked_icon != icon:
+    def set_clicked_icon(self, icon_number):
+        # 이전 클릭된 아이콘 초기화
+        if self.clicked_icon:
             self.clicked_icon.setStyleSheet(self.default_style())
 
-        # 새 클릭된 아이콘 스타일 적용
-        self.clicked_icon = icon
+        # 선택된 아이콘 번호 및 좌표 설정
+        self.selected_icon_number = icon_number
+        icon_name = f"Icon{icon_number}"
+        self.clicked_icon = getattr(self.main_window, icon_name)
         self.clicked_icon.setStyleSheet(self.click_style())
+
+        # 좌표값 설정
+        if icon_name in self.icon_coordinates:
+            self.selected_coordinates = self.icon_coordinates[icon_name]
+            print(f"[DEBUG] 선택된 아이콘: {icon_name} (번호: {icon_number}), 좌표: {self.selected_coordinates}")
+        else:
+            self.selected_coordinates = None
+            print(f"[WARNING] 선택된 아이콘에 좌표값이 지정되지 않았습니다.")
+
+    def get_selected_icon_number(self):
+        return self.selected_icon_number
+
+    def get_selected_coordinates(self):
+        return self.selected_coordinates
 
     def on_hover(self, icon, info):
         if self.clicked_icon != icon:
@@ -145,7 +173,67 @@ class IconHandler:
             icon.setStyleSheet(self.default_style())
         info.setVisible(False)
 
+#--------------------------------------------------------
+# 남은 돈 보여주기
+#--------------------------------------------------------
 
+class LeftMoneyManager:
+    def __init__(self, display_widget):
+        """
+        잔액 관리 매니저
+        :param display_widget: 잔액을 표시할 QLineEdit 또는 QLabel
+        """
+        self.display_widget = display_widget
+        self.current_balance = 0  # 기본 잔액 초기화
+        self.update_balance()     # 서버에서 최신 잔액 불러오기
+
+    def update_balance(self):
+        """
+        서버에서 최신 잔액을 불러와 표시
+        """
+        response = self.send_post_request("/get_balance", {})
+        if response and "balance" in response:
+            self.current_balance = response["balance"]
+            self.display_widget.setText(str(self.current_balance))
+            print(f"[INFO] 최신 잔액: {self.current_balance}")
+        else:
+            self.display_widget.setText("잔액 불러오기 실패")
+            print("[ERROR] 잔액 정보를 불러올 수 없습니다.")
+
+    def charge_balance(self, amount):
+        """
+        서버에 충전 요청 (금액 추가)
+        :param amount: 충전할 금액
+        """
+        if amount <= 0:
+            print("[ERROR] 유효하지 않은 충전 금액")
+            return
+
+        response = self.send_post_request("/charge", {"amount": amount})
+        if response and response.get("status") == "success":
+            self.current_balance = response["balance"]
+            self.display_widget.setText(str(self.current_balance))
+            print(f"[INFO] {amount}원 충전 완료. 잔액: {self.current_balance}")
+        else:
+            print("[ERROR] 충전 실패 - 서버 오류")
+
+    def send_post_request(self, endpoint: str, data: dict):
+        """
+        서버로 POST 요청 전송
+        """
+        url = f"http://localhost:8000{endpoint}"
+        print(f"[INFO] POST 요청 URL: {url}")
+        
+        try:
+            response = requests.post(url, json=data)
+            if response.status_code == 200:
+                print(f"[INFO] 서버 응답: {response.json()}")
+                return response.json()
+            else:
+                print(f"[ERROR] 서버 오류: {response.status_code} - {response.text}")
+        except requests.RequestException as e:
+            print(f"[ERROR] 서버와 연결할 수 없습니다: {e}")
+        return None
 
 # 이미지 크기 자동 조정 함수 (auto_resize_logo)
 def auto_resize_logo(widget, line_edit, image_path):
@@ -166,14 +254,3 @@ def auto_resize_logo(widget, line_edit, image_path):
         }}
     """)
 
-
-class ResizeEventFilter(QWidget):
-    def __init__(self, line_edit, image_path):
-        super().__init__()
-        self.line_edit = line_edit
-        self.image_path = image_path
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.Resize:
-            set_image(self.line_edit, self.image_path)
-        return super().eventFilter(obj, event)
