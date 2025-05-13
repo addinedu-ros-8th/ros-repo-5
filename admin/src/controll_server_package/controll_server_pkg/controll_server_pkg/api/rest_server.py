@@ -141,7 +141,44 @@ class RestServer:
                 "taxis": taxis_info
             })
 
+        @self.app.route('/pay', methods=['POST'])
+        def pay():
+            user_id = request.json.get('user_id')
+            pay_amount = request.json.get('pay_amount')
+            # DB에서 user_id로 결제 정보 조회
 
+            print(f" 수신 {user_id} , {pay_amount}")
+            return jsonify({
+                "status": "ok",
+                "user_id": user_id,
+                "remaining amount"  : 10000,
+            })
+        
+        @self.app.route('/charge', methods=['POST'])
+        def charge():
+            user_id = request.json.get('user_id')
+            charge_amount = request.json.get('charge_amount')
+            # DB에서 user_id로 결제 정보 조회
+
+            print(f" 수신 {user_id} , {charge_amount}")
+            return jsonify({
+                "status": "ok",
+                "user_id": user_id,
+                "remaining amount"  : 20000,
+            })
+
+        @self.app.route('/get_balance', methods=['POST'])
+        def get_balance():
+            user_id = request.json.get('user_id')
+            # DB에서 user_id로 결제 정보 조회
+
+            print(f"❌ 요청 실패: 필드 누락 - {user_id}")
+            return jsonify({
+                "status": "ok",
+                "user_id": user_id,
+                "remaining amount"  : 30000,
+            })
+        
     def run(self):
         print("🚀 REST 서버 실행 시작")
         self.app.run(host='0.0.0.0', port=8000)
