@@ -4,11 +4,6 @@ import json
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLineEdit, QLabel
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtCore import QEvent, Qt
-# from call import *
-# from destination import *
-# from riding import *
-# from driving import *
-# from end import *
 from charge_page import *
 from ui_utils import * 
 from icon_coordinates import ICON_COORDINATES 
@@ -39,10 +34,17 @@ class MainWindow(QMainWindow, from_class):
             "Icon4": "Info4",
             "Icon5": "Info5",
             "Icon6": "Info6"
-        }, ICON_COORDINATES)
+        })
+
+        # 아이콘 위치 이름
+        self.line_edit_handler = LineEditHandler(self)
+        self.location_names = LocationManager.get_location_names()
+
+        self.line_edit_handler = LineEditHandler(self)
+        self.line_edit_handler.clear_line_edits()
  
         # 인원 수 설정: QComboBox
-        self.comboBox.addItems(["1명", "2명", "3명", "4명"])
+        self.comboBox.addItems(["1명", "2명", "3명", "4명", "5명" ,"6명"])
         self.comboBox.setCurrentIndex(0)  # 기본값 1명
 
         # 호출하기 버튼 연결
@@ -53,7 +55,23 @@ class MainWindow(QMainWindow, from_class):
         self.charge_window = ChargeWindow()
         self.charge_window.show()
         self.close()
-    
+
+    def update_line_edits(self):
+        """
+        선택된 아이콘에 따라 LineEdit에 위치 이름 표시
+        """
+        if self.icon_handler.start_icon:
+            start_name = self.location_names.get(self.icon_handler.start_icon.objectName(), "출발지 선택")
+            self.line_edit_handler.update_line_edit("start", start_name)
+        else:
+            self.line_edit_handler.update_line_edit("start", "")
+
+        if self.icon_handler.destination_icon:
+            destination_name = self.location_names.get(self.icon_handler.destination_icon.objectName(), "목적지 선택")
+            self.line_edit_handler.update_line_edit("destination", destination_name)
+        else:
+            self.line_edit_handler.update_line_edit("destination", "")
+
     def send_post_request(self, endpoint: str, data: dict):
         """
         서버로 POST 요청 전송
@@ -91,18 +109,20 @@ class MainWindow(QMainWindow, from_class):
 
 
     def send_selected_location(self):
+        self.update_line_edits()
+
         # 선택된 아이콘 번호와 좌표 가져오기
-        selected_icon_number = self.icon_handler.get_selected_icon_number()
-        selected_coordinates = self.icon_handler.get_selected_coordinates()
+        start_coords, destination_coords = self.icon_handler.get_selected_coordinates()
         
         # 인원 수: 숫자만 추출
         selected_passenger_count_text = self.comboBox.currentText()
         selected_passenger_count = int(''.join(filter(str.isdigit, selected_passenger_count_text)))
 
 
-        if selected_icon_number and selected_coordinates:
-            start_x, start_y, dest_x, dest_y = selected_coordinates
-            client_id = "41"  # 고유 클라이언트 ID (동적 생성 가능)
+        if start_coords and destination_coords:
+            start_x, start_y = start_coords
+            dest_x, dest_y = destination_coords
+            client_id = "41"  # 고유 클라이언트 ID 
 
             # JSON 요청 생성
             request_data = {
@@ -111,7 +131,7 @@ class MainWindow(QMainWindow, from_class):
                 "dest_x": dest_x,
                 "dest_y": dest_y,
                 "passenger_count": selected_passenger_count,
-                "client_id": client_id
+                "passenger_id": client_id
             }
 
             print(f"[DEBUG] 서버로 전송할 JSON: {request_data}")
@@ -121,7 +141,10 @@ class MainWindow(QMainWindow, from_class):
             
             # call.py 페이지로 이동 -> 디버깅용 코드
             from call import CallWindow
-            self.call_window = CallWindow()
+            self.call_window = CallWindow(
+                self.icon_handler.start_icon.objectName(),
+                self.icon_handler.destination_icon.objectName()
+            )
             self.call_window.show()
             self.close()
           
@@ -132,12 +155,15 @@ class MainWindow(QMainWindow, from_class):
                     print(f"[INFO] 택시 배정 완료 - 택시 ID: {response.get('taxi_id')}")
 
                     # 선택된 아이콘 번호와 좌표를 애플리케이션 전역에 저장
-                    QApplication.instance().setProperty("selected_icon_number", selected_icon_number)
-                    QApplication.instance().setProperty("selected_coordinates", selected_coordinates)
+                    # QApplication.instance().setProperty("selected_icon_number", selected_icon_number)
+                    # QApplication.instance().setProperty("selected_coordinates", selected_coordinates)
 
                     # # call.py 페이지로 이동
                     # from call import CallWindow
-                    # self.call_window = CallWindow()
+                    # self.call_window = CallWindow(
+                    #     self.icon_handler.start_icon.objectName(),
+                    #     self.icon_handler.destination_icon.objectName()
+                    # )
                     # self.call_window.show()
                     # self.close()
                 else:

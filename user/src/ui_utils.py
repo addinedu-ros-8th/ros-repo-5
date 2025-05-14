@@ -4,6 +4,7 @@ import requests
 import json
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QMessageBox
 
+
 API_SERVER_IP = "192.168.0.32"
 API_SERVER_PORT = 8000
 
@@ -60,43 +61,217 @@ class RestAPIManager:
 # # 아이콘 및 이미지 설정 모듈화
 # # ----------------------------------------------
 
+
 class IconHandler:
-    def __init__(self, main_window, icons_info, icon_coordinates):
-        """
-        main_window: QMainWindow - 아이콘을 관리할 메인 윈도우
-        icons_info: dict - { "Icon1": "Info1", "Icon2": "Info2", ... }
-        icon_coordinates: dict - { "Icon1": (start_x, start_y, dest_x, dest_y), ... }
-        """
+    def __init__(self, main_window, icons_info):
         self.main_window = main_window
         self.icons_info = icons_info
-        self.icon_coordinates = icon_coordinates  # 아이콘별 좌표 저장
-        self.clicked_icon = None  # 클릭된 아이콘 저장
-        self.selected_icon_number = None  # 선택된 아이콘 번호 저장
-        self.selected_coordinates = None  # 선택된 아이콘의 좌표 저장
+        self.start_icon = None
+        self.destination_icon = None
+        self.fixed_mode = False  # 아이콘 고정 모드 (CallWindow)
+        self.line_edit_handler = LineEditHandler(main_window)
 
         # 아이콘 설정
         self.setup_icons()
 
     def setup_icons(self):
-        for icon_number, (icon_name, info_name) in enumerate(self.icons_info.items(), start=1):
-            icon = getattr(self.main_window, icon_name)
-            info = getattr(self.main_window, info_name)
+        for icon_name, info_name in self.icons_info.items():
+            icon = getattr(self.main_window, icon_name, None)
+            info = getattr(self.main_window, info_name, None)
 
-            # 기본 스타일 직접 적용
+            if icon:
+                icon.setStyleSheet(self.default_style())
+                icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                icon.setText("")  # 텍스트 제거
+                if info:
+                    info.setVisible(False)
+
+                if not self.fixed_mode:  # 고정 모드가 아닐 때만 클릭 가능
+                    icon.mousePressEvent = lambda event, i=icon_name: self.set_icon(i)
+                icon.enterEvent = lambda event, i=icon, inf=info: self.on_hover(i, inf)
+                icon.leaveEvent = lambda event, i=icon, inf=info: self.on_leave(i, inf)
+
+            
+
+    def set_icon(self, icon_name):
+        """
+        아이콘 클릭 시 출발지 또는 목적지로 설정
+        """
+        icon = getattr(self.main_window, icon_name, None)
+        if not icon:
+            print(f"[ERROR] 아이콘 {icon_name}을 찾을 수 없습니다.")
+            return
+
+        if not self.start_icon:  # 출발지 설정
+            self.start_icon = icon
+            self.start_icon.setStyleSheet(self.start_style())
+            self.line_edit_handler.update_line_edit("start", LocationManager.get_location_names().get(icon_name, ""))
+            print(f"[DEBUG] 출발지 설정: {icon_name}")
+        elif not self.destination_icon and self.start_icon != icon:  # 목적지 설정
+            self.destination_icon = icon
+            self.destination_icon.setStyleSheet(self.destination_style())
+            self.line_edit_handler.update_line_edit("destination", LocationManager.get_location_names().get(icon_name, ""))
+            print(f"[DEBUG] 목적지 설정: {icon_name}")
+        else:
+            self.reset_icons()
+            self.start_icon = icon
+            self.start_icon.setStyleSheet(self.start_style())
+            print(f"[DEBUG] 출발지 재설정: {icon_name}")
+
+
+    def reset_icons(self):
+        """
+        출발지와 목적지 초기화 (상태만 초기화, 스타일은 유지)
+        """
+        if self.start_icon:
+            self.start_icon.setStyleSheet(self.default_style())
+        if self.destination_icon:
+            self.destination_icon.setStyleSheet(self.default_style())
+
+        self.start_icon = None
+        self.destination_icon = None
+        self.line_edit_handler.clear_line_edits()
+
+    def get_selected_coordinates(self):
+        """
+        출발지와 목적지 좌표 반환
+        """
+        if self.start_icon and self.destination_icon:
+            start_coords = self.get_coordinates(self.start_icon)
+            destination_coords = self.get_coordinates(self.destination_icon)
+            print(f"[DEBUG] 출발지 좌표: {start_coords}, 목적지 좌표: {destination_coords}")
+            return start_coords, destination_coords
+        
+        print("[ERROR] 출발지 또는 목적지가 선택되지 않았습니다.")
+        return None, None
+
+    def get_coordinates(self, icon):
+        """
+        아이콘의 좌표 가져오기 (예제 좌표 설정)
+        """
+        coordinates = {
+            "Icon1": (500, 300),
+            "Icon2": (600, 400),
+            "Icon3": (700, 500),
+            "Icon4": (800, 600),
+            "Icon5": (900, 700),
+            "Icon6": (1000, 800)
+        }
+
+        if icon and icon.objectName() in coordinates:
+            return coordinates[icon.objectName()]
+        
+        print(f"[ERROR] 아이콘 {icon}의 좌표를 찾을 수 없습니다.")
+        return None
+    
+    def on_hover(self, icon, info):
+        """
+        마우스 오버 시 아이콘 스타일 변경
+        """
+        if not icon:
+            print("[ERROR] on_hover: 아이콘이 지정되지 않았습니다.")
+            return
+        
+        if icon == self.start_icon:
+            icon.setStyleSheet(self.start_style())
+        elif icon == self.destination_icon:
+            icon.setStyleSheet(self.destination_style())
+        else:
+            icon.setStyleSheet(self.hover_style())
+
+        if info:
+            info.setVisible(True)
+
+    def on_leave(self, icon, info):
+        """
+        마우스 벗어날 때 스타일 복구
+        """
+        if not icon:
+            print("[ERROR] on_leave: 아이콘이 지정되지 않았습니다.")
+            return
+        
+        if icon == self.start_icon:
+            icon.setStyleSheet(self.start_style())
+        elif icon == self.destination_icon:
+            icon.setStyleSheet(self.destination_style())
+        else:
             icon.setStyleSheet(self.default_style())
-            icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            icon.setText("")  # 텍스트 제거
-            info.setVisible(False)  # 기본적으로 숨김
 
-            # 마우스 이벤트 직접 연결
-            icon.mousePressEvent = lambda event, num=icon_number: self.set_clicked_icon(num)
-            icon.enterEvent = lambda event, i=icon, inf=info: self.on_hover(i, inf)
-            icon.leaveEvent = lambda event, i=icon, inf=info: self.on_leave(i, inf)
+        if info:
+            info.setVisible(False)
+
+    def set_fixed_icons(self, start_icon_name, destination_icon_name):
+        """
+        출발지와 목적지 아이콘을 고정 상태로 설정
+        """
+        self.fixed_mode = True
+
+        # 출발지 아이콘 설정
+        if start_icon_name in self.icons_info:
+            self.start_icon = getattr(self.main_window, start_icon_name)
+            self.start_icon.setStyleSheet(self.start_style())
+            print(f"[DEBUG] 출발지 고정: {start_icon_name}")
+
+        # 목적지 아이콘 설정
+        if destination_icon_name in self.icons_info:
+            self.destination_icon = getattr(self.main_window, destination_icon_name)
+            self.destination_icon.setStyleSheet(self.destination_style())
+            print(f"[DEBUG] 목적지 고정: {destination_icon_name}")
+
+        # 고정 상태에서 마우스 클릭 막기
+        self.setup_fixed_mode()
+
+
+    def setup_fixed_mode(self):
+        """
+        고정 모드에서는 아이콘 클릭 비활성화
+        """
+        for icon_name in self.icons_info.keys():
+            icon = getattr(self.main_window, icon_name, None)
+            if icon:
+                icon.setEnabled(False)  # 고정 모드에서 클릭 비활성화
+                icon.setStyleSheet(self.default_style())
+
+        # 출발지와 목적지는 고정된 스타일 유지
+        if self.start_icon:
+            self.start_icon.setStyleSheet(self.start_style())
+        if self.destination_icon:
+            self.destination_icon.setStyleSheet(self.destination_style())
 
     def default_style(self):
         return """
         QLineEdit {
             background-color: #E0E0E0;
+            color: #000000;
+            border: 2px solid #4A4A4A;
+            border-radius: 20px;
+            min-width: 40px;
+            min-height: 40px;
+            max-width: 40px;
+            max-height: 40px;
+            text-align: center;
+        }
+        """
+
+    def start_style(self):
+        return """
+        QLineEdit {
+            background-color: #76C17E; /* 초록색 (출발지) */
+            color: #000000;
+            border: 2px solid #4A4A4A;
+            border-radius: 20px;
+            min-width: 40px;
+            min-height: 40px;
+            max-width: 40px;
+            max-height: 40px;
+            text-align: center;
+        }
+        """
+
+    def destination_style(self):
+        return """
+        QLineEdit {
+            background-color: #E57373; /* 빨간색 (목적지) */
             color: #000000;
             border: 2px solid #4A4A4A;
             border-radius: 20px;
@@ -123,55 +298,50 @@ class IconHandler:
         }
         """
 
-    def click_style(self):
-        return """
-        QLineEdit {
-            background-color: #76C17E;
-            color: #000000;
-            border: 2px solid #4A4A4A;
-            border-radius: 20px;
-            min-width: 40px;
-            min-height: 40px;
-            max-width: 40px;
-            max-height: 40px;
-            text-align: center;
-        }
+#-------------------------------
+# LineEdit에 목적지 표시 
+#---------------------------------
+class LineEditHandler:
+    def __init__(self, main_window):
+        self.main_window = main_window
+
+    def update_line_edit(self, target, text):
         """
-
-    def set_clicked_icon(self, icon_number):
-        # 이전 클릭된 아이콘 초기화
-        if self.clicked_icon:
-            self.clicked_icon.setStyleSheet(self.default_style())
-
-        # 선택된 아이콘 번호 및 좌표 설정
-        self.selected_icon_number = icon_number
-        icon_name = f"Icon{icon_number}"
-        self.clicked_icon = getattr(self.main_window, icon_name)
-        self.clicked_icon.setStyleSheet(self.click_style())
-
-        # 좌표값 설정
-        if icon_name in self.icon_coordinates:
-            self.selected_coordinates = self.icon_coordinates[icon_name]
-            print(f"[DEBUG] 선택된 아이콘: {icon_name} (번호: {icon_number}), 좌표: {self.selected_coordinates}")
+        QLineEdit에 위치 텍스트 업데이트
+        """
+        if target == "start":
+            line_edit = self.main_window.start  # QLineEdit 이름: start
+        elif target == "destination":
+            line_edit = self.main_window.destination  # QLineEdit 이름: destination
         else:
-            self.selected_coordinates = None
-            print(f"[WARNING] 선택된 아이콘에 좌표값이 지정되지 않았습니다.")
+            return
 
-    def get_selected_icon_number(self):
-        return self.selected_icon_number
+        if line_edit:
+            line_edit.setText(text)
+            print(f"[DEBUG] {target} 위치 업데이트: {text}")
 
-    def get_selected_coordinates(self):
-        return self.selected_coordinates
+    def clear_line_edits(self):
+        """
+        모든 QLineEdit 초기화
+        """
+        self.update_line_edit("start", "")
+        self.update_line_edit("destination", "")
 
-    def on_hover(self, icon, info):
-        if self.clicked_icon != icon:
-            icon.setStyleSheet(self.hover_style())
-        info.setVisible(True)
 
-    def on_leave(self, icon, info):
-        if self.clicked_icon != icon:
-            icon.setStyleSheet(self.default_style())
-        info.setVisible(False)
+# LocationManager.py (위치 이름 관리)
+class LocationManager:
+    @staticmethod
+    def get_location_names():
+        return {
+            "Icon1": "애드인에듀학원",
+            "Icon2": "기억할게!술집",
+            "Icon3": "내 거친 생각 정신과",
+            "Icon4": "불안한 눈빛 안과",
+            "Icon5": "신라호텔",
+            "Icon6": "월드컵 경기장"
+        }
+
+
 
 #--------------------------------------------------------
 # 남은 돈 보여주기
