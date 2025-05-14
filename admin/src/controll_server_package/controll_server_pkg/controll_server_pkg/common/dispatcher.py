@@ -1,5 +1,6 @@
 import networkx as nx
 import numpy as np
+from controll_server_pkg.common.database import Database
 
 # 🔹 노드 위치 정보
 positions = {
@@ -44,7 +45,9 @@ def get_astar_distance(x1, y1, x2, y2):
         return float('inf'), []
 
 # 🔹 배차 로직
-def assign_taxi(taxis: dict, request: dict):
+def assign_taxi(taxis: dict, request: dict, call_id: int):
+    db = Database()
+    
     dest_x, dest_y = request["dest_x"], request["dest_y"]
     required_passengers = request["passenger_count"]
 
@@ -64,11 +67,28 @@ def assign_taxi(taxis: dict, request: dict):
     taxi_distances = {}
     for taxi in available:
         dist, path = get_astar_distance(taxi.location[0], taxi.location[1], dest_x, dest_y)
-        taxi_distances[taxi.taxi_id] = (dist, path)
-        print(f"🚕 택시 {taxi.taxi_id}: 예상 거리={dist:.1f}, 경로={path}")
+        taxi_distances[taxi.vehicle_id] = (dist, path)
+        print(f"🚕 택시 {taxi.vehicle_id}: 예상 거리={dist:.1f}, 경로={path}")
 
-    best_taxi = min(available, key=lambda t: taxi_distances[t.taxi_id][0])
-    best_dist, best_path = taxi_distances[best_taxi.taxi_id]
+    best_taxi = min(available, key=lambda t: taxi_distances[t.vehicle_id][0])
+    best_dist, best_path = taxi_distances[best_taxi.vehicle_id]
+
+    dispatches_id = db.execute_insert(
+        """INSERT INTO `Dispatches` (
+            call_id, 
+            vehicle_id, 
+            end_position,
+            fare
+        ) VALUES (
+            %s, %s, %s, %s
+        )""",
+        (
+            call_id,
+            best_taxi.vehicle_id,
+            f"{dest_x} , {dest_y}",
+            0
+        )
+    )
 
     best_taxi.assign(
         start_x=request["start_x"],
@@ -76,9 +96,10 @@ def assign_taxi(taxis: dict, request: dict):
         dest_x=dest_x,
         dest_y=dest_y,
         passenger_count=request["passenger_count"],
-        client_id=request["client_id"]
+        passenger_id=request["passenger_id"],
+        dispatches_id=dispatches_id
     )
 
-    print(f"✅ 택시 {best_taxi.taxi_id} 배차됨 → 거리: {best_dist:.1f} → 경로: {best_path}")
+    print(f"✅ 택시 {best_taxi.vehicle_id} 배차됨 → 거리: {best_dist:.1f} → 경로: {best_path}")
 
     return best_taxi

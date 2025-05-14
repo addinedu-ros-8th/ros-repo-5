@@ -1,20 +1,22 @@
 class Taxi:
-    def __init__(self, taxi_id, max_passengers):
-        self.taxi_id = taxi_id
+    def __init__(self, vehicle_id, max_passengers):
+        self.vehicle_id = vehicle_id
         self.state = "ready"
         self.location = (0.0, 0.0)
         self.start = (0.0, 0.0)
         self.destination = (0.0, 0.0)
         self.passenger_count = 0
         self.battery = 0.0 
-        self.client_id = None
+        self.passenger_id = None
         self.max_passengers = max_passengers
+        self.dispatches_id = None
 
-    def assign(self, start_x, start_y, dest_x, dest_y, passenger_count, client_id):
+    def assign(self, start_x, start_y, dest_x, dest_y, passenger_count, passenger_id, dispatches_id):
         self.start = (start_x, start_y)
         self.destination = (dest_x, dest_y)
         self.passenger_count = passenger_count
-        self.client_id = client_id
+        self.passenger_id = passenger_id
+        self.dispatches_id = dispatches_id
         self.state = "assigned"
 
     def update_location(self, x, y):
@@ -36,13 +38,13 @@ class Taxi:
 
     def to_dict(self):
         return {
-            "taxi_id": self.taxi_id,
+            "vehicle_id": self.vehicle_id,
             "state": self.state,
             "location": self.location,
             "start": self.start,
             "destination": self.destination,
             "passenger_count": self.passenger_count,
-            "client_id": self.client_id,
+            "passenger_id": self.passenger_id,
             "battery": self.battery,
             "max_passengers": self.max_passengers
         }

@@ -17,7 +17,7 @@ class TaxiEventServiceNode(Node):
         self.get_logger().info("🛠️ TaxiEvent 서비스 서버 실행 중")
 
     def handle_request(self, request, response):
-        taxi_id = request.taxi_id
+        vehicle_id = request.vehicle_id
         event_type = request.event_type
         data = request.data
 
@@ -30,9 +30,9 @@ class TaxiEventServiceNode(Node):
             12: "RFID 태깅"
         }.get(event_type, f"알 수 없는 이벤트({event_type})")
 
-        self.get_logger().info(f"📥 수신: 택시 ID={taxi_id}, 이벤트={log_event}, 데이터={data}")
+        self.get_logger().info(f"📥 수신: 택시 ID={vehicle_id}, 이벤트={log_event}, 데이터={data}")
 
-        taxi = self.manager.get_taxi(taxi_id)
+        taxi = self.manager.get_taxi(vehicle_id)
         if taxi:
             # 예: 상태 코드 업데이트
             taxi.update_state(event_type)
@@ -41,10 +41,10 @@ class TaxiEventServiceNode(Node):
                 self.get_logger().info(f"🆔 수신된 RFID UID: {data}")
                 taxi.rfid_uid = data
 
-            self.get_logger().info(f"✅ 택시 {taxi_id} 상태 업데이트 완료")
+            self.get_logger().info(f"✅ 택시 {vehicle_id} 상태 업데이트 완료")
             response.result = True
         else:
-            self.get_logger().warn(f"🚫 존재하지 않는 택시 ID: {taxi_id}")
+            self.get_logger().warn(f"🚫 존재하지 않는 택시 ID: {vehicle_id}")
             response.result = False
 
         return response

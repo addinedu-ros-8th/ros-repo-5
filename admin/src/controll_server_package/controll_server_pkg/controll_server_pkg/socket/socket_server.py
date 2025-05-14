@@ -2,6 +2,7 @@ import socket
 import threading
 import time
 import json
+from controll_server_pkg.common.database import Database
 
 HOST = '0.0.0.0'
 PORT = 9000
@@ -25,18 +26,18 @@ class SocketServer:
 
             try:
                 payload = json.loads(raw)
-                taxi_id = payload["taxi_id"]
-                print(f"📨 초기 수신: taxi_id={taxi_id}")
+                vehicle_id = payload["vehicle_id"]
+                print(f"📨 초기 수신: vehicle_id={vehicle_id}")
             except Exception as e:
                 print(f"[❌ JSON 파싱 실패] {e} - 원본: {raw}")
                 conn.close()
                 return
 
             # ✅ Taxi 조회 (RestServer와 동일한 방식)
-            taxi = self.manager.get_taxi(taxi_id)
+            taxi = self.manager.get_taxi(vehicle_id)
             if not taxi:
-                print(f"🚫 존재하지 않는 taxi_id: {taxi_id}")
-                conn.sendall(json.dumps({"error": f"Taxi {taxi_id} not found"}) .encode())
+                print(f"🚫 존재하지 않는 vehicle_id: {vehicle_id}")
+                conn.sendall(json.dumps({"error": f"Taxi {vehicle_id} not found"}) .encode())
                 conn.close()
                 return
 
