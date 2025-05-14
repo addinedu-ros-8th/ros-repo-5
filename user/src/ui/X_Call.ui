@@ -82,19 +82,6 @@ padding: 5px 10px;
 </string>
         </property>
        </widget>
-       <widget class="QLineEdit" name="Textbox">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>80</y>
-          <width>71</width>
-          <height>31</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>남은 금액:</string>
-        </property>
-       </widget>
        <widget class="QLineEdit" name="LeftMoney">
         <property name="geometry">
          <rect>
@@ -106,6 +93,25 @@ padding: 5px 10px;
         </property>
         <property name="readOnly">
          <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_6">
+        <property name="geometry">
+         <rect>
+          <x>320</x>
+          <y>90</y>
+          <width>66</width>
+          <height>19</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>현재 금액:</string>
         </property>
        </widget>
       </widget>
@@ -240,27 +246,6 @@ padding: 5px 10px;
       <width>521</width>
       <height>351</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="UpTextbox">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>210</y>
-      <width>441</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>가장 가까운 핑키 택시가 오고 있어요!</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLineEdit" name="Pinky">
@@ -513,38 +498,70 @@ padding: 5px 10px;
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLineEdit" name="UpTextbox_2">
+   <widget class="QLineEdit" name="start">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>670</y>
-      <width>101</width>
+      <x>30</x>
+      <y>690</y>
+      <width>201</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="destination">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>690</y>
+      <width>201</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>680</y>
+      <width>41</width>
       <height>51</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="text">
-     <string>호출지 : </string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <string>  - &gt;</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>670</y>
-      <width>251</width>
-      <height>51</height>
+      <x>10</x>
+      <y>210</y>
+      <width>461</width>
+      <height>31</height>
      </rect>
     </property>
-    <property name="readOnly">
-     <bool>true</bool>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>                        가장 가까운 핑키택시가 오고 있어요! </string>
     </property>
    </widget>
   </widget>

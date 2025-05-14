@@ -112,7 +112,7 @@ padding: 5px 10px;
          </font>
         </property>
         <property name="text">
-         <string>남은 금액:</string>
+         <string>현재 금액:</string>
         </property>
        </widget>
       </widget>
@@ -251,15 +251,18 @@ padding: 5px 10px;
       <height>351</height>
      </rect>
     </property>
-   </widget>
-   <widget class="QLineEdit" name="Pinky">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>260</y>
-      <width>521</width>
-      <height>351</height>
-     </rect>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/map/map.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLineEdit" name="Icon1">
@@ -285,6 +288,9 @@ padding: 5px 10px;
     text-align: center;
 }</string>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="Icon2">
     <property name="geometry">
@@ -308,6 +314,9 @@ padding: 5px 10px;
     padding: 0px;
     text-align: center;
 }</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLineEdit" name="Icon4">
@@ -333,6 +342,9 @@ padding: 5px 10px;
     text-align: center;
 }</string>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="Icon3">
     <property name="geometry">
@@ -356,6 +368,9 @@ padding: 5px 10px;
     padding: 0px;
     text-align: center;
 }</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLineEdit" name="Icon5">
@@ -381,6 +396,9 @@ padding: 5px 10px;
     text-align: center;
 }</string>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="Icon6">
     <property name="geometry">
@@ -405,6 +423,9 @@ padding: 5px 10px;
     text-align: center;
 }</string>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="Info1">
     <property name="geometry">
@@ -417,6 +438,9 @@ padding: 5px 10px;
     </property>
     <property name="text">
      <string>   애드인에듀 학원</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLineEdit" name="Info2">
@@ -431,6 +455,9 @@ padding: 5px 10px;
     <property name="text">
      <string>     기억할게! 술집</string>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="Info5">
     <property name="geometry">
@@ -443,6 +470,9 @@ padding: 5px 10px;
     </property>
     <property name="text">
      <string>         신라호텔</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLineEdit" name="Info6">
@@ -457,6 +487,9 @@ padding: 5px 10px;
     <property name="text">
      <string>      월드컵 경기장</string>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLineEdit" name="Info3">
     <property name="geometry">
@@ -469,6 +502,9 @@ padding: 5px 10px;
     </property>
     <property name="text">
      <string>     내 거친 생각 정신과</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLineEdit" name="Info4">
@@ -483,14 +519,17 @@ padding: 5px 10px;
     <property name="text">
      <string>   불안한 눈빛 안과</string>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QPushButton" name="CheckBtn">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>710</y>
-      <width>451</width>
-      <height>101</height>
+      <x>30</x>
+      <y>760</y>
+      <width>501</width>
+      <height>81</height>
      </rect>
     </property>
     <property name="font">
@@ -534,8 +573,8 @@ padding: 5px 10px;</string>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>640</y>
+      <x>150</x>
+      <y>620</y>
       <width>71</width>
       <height>41</height>
      </rect>
@@ -554,11 +593,57 @@ padding: 5px 10px;</string>
    <widget class="QComboBox" name="comboBox">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>630</y>
+      <x>220</x>
+      <y>620</y>
       <width>171</width>
       <height>51</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="start">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>690</y>
+      <width>201</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="destination">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>690</y>
+      <width>201</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>680</y>
+      <width>41</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>  - &gt;</string>
     </property>
    </widget>
   </widget>

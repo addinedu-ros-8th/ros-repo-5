@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>599</width>
-    <height>884</height>
+    <height>882</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -95,10 +95,10 @@ padding: 5px 10px;
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="QLabel" name="label_5">
+       <widget class="QLabel" name="label_3">
         <property name="geometry">
          <rect>
-          <x>310</x>
+          <x>320</x>
           <y>80</y>
           <width>66</width>
           <height>19</height>
@@ -177,8 +177,8 @@ padding: 5px 10px;
     </property>
     <property name="styleSheet">
      <string notr="true">QLineEdit {
-    background-color: #4A4A4A; /* 배경색 - 회색 */
-    color: #000000;           /* 텍스트 색상 - 검정 */
+    background-color: #98C5FC;  /* 파란색 */
+    color: #000000;
     border: 2px solid #4A4A4A; /* 테두리 - 회색 */
     border-radius: 20px;       /* 반지름을 크기에 맞춰 조정 */
     min-width: 40px;           /* 최소 너비 (원 크기) */
@@ -201,8 +201,8 @@ padding: 5px 10px;
     </property>
     <property name="styleSheet">
      <string notr="true">QLineEdit {
-    background-color: #98C5FC;  /* 파란색 */
-    color: #000000;
+    background-color: #E0E0E0; /* 배경색 - 회색 */
+    color: #000000;           /* 텍스트 색상 - 검정 */
     border: 2px solid #4A4A4A; /* 테두리 - 회색 */
     border-radius: 20px;       /* 반지름을 크기에 맞춰 조정 */
     min-width: 40px;           /* 최소 너비 (원 크기) */
@@ -463,9 +463,6 @@ padding: 5px 10px;
     <property name="text">
      <string>      월드컵 경기장</string>
     </property>
-    <property name="readOnly">
-     <bool>false</bool>
-    </property>
    </widget>
    <widget class="QLineEdit" name="Info3">
     <property name="geometry">
@@ -492,42 +489,40 @@ padding: 5px 10px;
     <property name="text">
      <string>   불안한 눈빛 안과</string>
     </property>
-    <property name="readOnly">
-     <bool>false</bool>
-    </property>
    </widget>
-   <widget class="QLineEdit" name="start">
+   <widget class="QPushButton" name="CheckBtn">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>690</y>
-      <width>161</width>
-      <height>61</height>
+      <x>50</x>
+      <y>710</y>
+      <width>451</width>
+      <height>101</height>
      </rect>
     </property>
-    <property name="readOnly">
-     <bool>true</bool>
+    <property name="font">
+     <font>
+      <pointsize>17</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: #3399FF;
+color: white;
+font-weight: bold;
+border-radius: 5px;
+padding: 5px 10px;</string>
+    </property>
+    <property name="text">
+     <string>승차하기</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="destination">
+   <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>340</x>
-      <y>690</y>
-      <width>171</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>200</y>
-      <width>201</width>
+      <x>70</x>
+      <y>210</y>
+      <width>461</width>
       <height>31</height>
      </rect>
     </property>
@@ -539,27 +534,7 @@ padding: 5px 10px;
      </font>
     </property>
     <property name="text">
-     <string>목적지 이동 중 ....</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_4">
-    <property name="geometry">
-     <rect>
-      <x>250</x>
-      <y>690</y>
-      <width>41</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>16</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>  - &gt;</string>
+     <string>             핑키 택시가 호출지에 도착했습니다!</string>
     </property>
    </widget>
   </widget>

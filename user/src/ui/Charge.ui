@@ -204,17 +204,24 @@ padding: 5px 10px;</string>
      </widget>
     </widget>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>150</y>
-      <width>271</width>
-      <height>61</height>
+      <x>40</x>
+      <y>170</y>
+      <width>461</width>
+      <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
-     <string>먼저, 카드를 단말에 대고, 충전해주세요</string>
+     <string>                        충전할 금액을 입력해주세요</string>
     </property>
    </widget>
   </widget>
