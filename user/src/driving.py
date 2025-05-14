@@ -7,7 +7,7 @@ from driving import drivingPage
 from end import endPage
 from charge_page import EnterChargePage
 
-class drivingPage(QWidget):
+class DrivingWindow(QWidget):
     def __init__(self, saved_data):
         super().__init__()
         self.saved_data = saved_data
