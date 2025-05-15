@@ -1,2 +1,3 @@
 int32 pinky_num
-YoloSegResult[] results
+float32 radius
+float32 offset
