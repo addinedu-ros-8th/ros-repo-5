@@ -27,6 +27,7 @@ class Database:
 
     def execute_insert(self, query, params=None):
         cursor = self.conn.cursor()
+        print(f"🔋 query {query} params: {params}")
         cursor.execute(query, params)
         self.conn.commit()
         last_id = cursor.lastrowid
@@ -40,9 +41,10 @@ class Database:
     # )
 
 
-    def update_query(self, query, params=None):
+    def execute_update(self, query, params=None):
         cursor = self.conn.cursor()
         try:
+            print().info(f"🔋 query {query} params: {params}")
             cursor.execute(query, params)
             self.conn.commit()
         finally:
@@ -53,25 +55,20 @@ class Database:
     # (3,)
     # )
 
-    def delete_query(self, query, params=None):
+    def execute_delete(self, query, params=None):
         cursor = self.conn.cursor()
         try:
+            print(f"🔋 query {query} params: {params}")
             cursor.execute(query, params)
             self.conn.commit()
         finally:
             cursor.close()
 
-
-    def fetch_one(self, query, params=None):
+    def execute_select(self, query, params=None):
         cursor = self.conn.cursor(dictionary=True)
+        
         cursor.execute(query, params)
-        result = cursor.fetchone()
-        cursor.close()
-        return result
-
-    def fetch_all(self, query, params=None):
-        cursor = self.conn.cursor(dictionary=True)
-        cursor.execute(query, params)
+        print(f"🔋 query {query} params: {params}")
         result = cursor.fetchall()
         cursor.close()
         return result

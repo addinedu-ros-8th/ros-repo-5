@@ -45,7 +45,7 @@ def get_astar_distance(x1, y1, x2, y2):
         return float('inf'), []
 
 # 🔹 배차 로직
-def assign_taxi(taxis: dict, request: dict, call_id: int):
+def dispatch(taxis: dict, request: dict, call_id: int):
     db = Database()
     
     dest_x, dest_y = request["dest_x"], request["dest_y"]
@@ -90,7 +90,7 @@ def assign_taxi(taxis: dict, request: dict, call_id: int):
         )
     )
 
-    best_taxi.assign(
+    best_taxi.dispatch(
         start_x=request["start_x"],
         start_y=request["start_y"],
         dest_x=dest_x,

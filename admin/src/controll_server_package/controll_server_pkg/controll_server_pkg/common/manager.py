@@ -8,6 +8,9 @@ class ServiceManager:
         self.ros_admin_service = None
         self.ros_admin_topic = None
         self.ros_drive = None
+        self.taxi_event_service = None
+        self.taxi_state_node = None
+        self.drive_router_node = None
 
         # 🚕 택시 객체 2대 초기화
         self.taxis = {
@@ -30,6 +33,23 @@ class ServiceManager:
 
     def set_ros_drive(self, handler):
         self.ros_drive = handler
+
+    def set_taxi_event_service(self, handler):
+        self.taxi_event_service = handler
+
+    def set_taxi_state_node(self, handler):
+        self.taxi_state_node = handler
+
+    def set_drive_router_node(self, handler):
+        self.drive_router_node = handler
+
+    def set_location(self, vehicle_id, x, y):
+        taxi = self.taxis.get(vehicle_id)
+        if taxi:
+            taxi.update_location(x, y)
+            print(f"🚖 택시 {vehicle_id} 위치 업데이트됨: ({x}, {y})")
+        else:
+            print(f"🚫 존재하지 않는 택시 ID: {vehicle_id}")
 
     # 🧠 택시 객체 참조 메서드
     def get_taxi(self, vehicle_id):

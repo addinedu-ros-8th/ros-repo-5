@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(controll_server_package_msgs)  
+project(controll_server_package_msgs)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -10,13 +10,21 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 
+# message/service generation
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/CmdMoveTo.srv"
   "srv/TaxiEvent.srv"
   DEPENDENCIES builtin_interfaces
 )
 
-ament_export_dependencies(rosidl_default_runtime)  # ✅ 추가됨
+# Optional: if you have include headers
+include_directories(include)
+
+install(DIRECTORY include/
+  DESTINATION include/
+)
+
+ament_export_dependencies(rosidl_default_runtime)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

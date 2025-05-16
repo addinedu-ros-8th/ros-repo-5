@@ -1,23 +1,28 @@
+# self.state = ready dispatch drive_start boarded drive_destination landing completed charged
+
 class Taxi:
     def __init__(self, vehicle_id, max_passengers):
         self.vehicle_id = vehicle_id
         self.state = "ready"
         self.location = (0.0, 0.0)
         self.start = (0.0, 0.0)
+        self.start_node = None
         self.destination = (0.0, 0.0)
+        self.destination_node = None
         self.passenger_count = 0
         self.battery = 0.0 
         self.passenger_id = None
         self.max_passengers = max_passengers
         self.dispatches_id = None
+        self.passenger_state = None
 
-    def assign(self, start_x, start_y, dest_x, dest_y, passenger_count, passenger_id, dispatches_id):
+    def dispatch(self, start_x, start_y, dest_x, dest_y, passenger_count, passenger_id, dispatches_id):
         self.start = (start_x, start_y)
         self.destination = (dest_x, dest_y)
         self.passenger_count = passenger_count
         self.passenger_id = passenger_id
         self.dispatches_id = dispatches_id
-        self.state = "assigned"
+        self.state = "dispatch"
 
     def update_location(self, x, y):
         self.location = (x, y)

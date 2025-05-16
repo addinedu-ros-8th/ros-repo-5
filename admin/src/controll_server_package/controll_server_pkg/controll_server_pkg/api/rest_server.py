@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from controll_server_pkg.common.dispatcher import assign_taxi
+from controll_server_pkg.common.dispatcher import dispatch
 from controll_server_pkg.common.database import Database
 
 
@@ -67,13 +67,13 @@ class RestServer:
             )
 
             # 배차 시도
-            taxi = assign_taxi(self.manager.taxis, data, call_id)
+            taxi = dispatch(self.manager.taxis, data, call_id)
 
             if taxi:
                 print(f"✅ 택시 {taxi.vehicle_id} 배차됨 → 위치: {taxi.location} → 목적지: {taxi.start} → 승객 수: {taxi.passenger_count}")               
 
                 return jsonify({
-                    "status": "taxi assigned",
+                    "status": "taxi dispatch",
                     "vehicle_id": taxi.vehicle_id,
                     "location": taxi.location,
                     "start": taxi.start,
@@ -172,42 +172,92 @@ class RestServer:
 
         @self.app.route('/pay', methods=['POST'])
         def pay():
-            user_id = request.json.get('user_id')
+            passenger_id = request.json.get('passenger_id')
             pay_amount = request.json.get('pay_amount')
-            # DB에서 user_id로 결제 정보 조회
+            
+            db = Database()
 
-            print(f" 수신 {user_id} , {pay_amount}")
+            passenger_info = db.execute_select(
+                "SELECT * FROM Passengers WHERE passenger_id = %s",
+                (passenger_id,)
+            )
+            if not passenger_info:
+                return jsonify({"error": "회원정보 없음"}), 400
+            
+            passenger_info = passenger_info[0]
+            if passenger_info['money'] < pay_amount:
+                return jsonify({
+                    "status": "ok",
+                    "passenger_id": passenger_id,
+                    "remaining amount"  : passenger_info['money'],
+                    "message": "잔액 부족"
+                })
+            
+            db.execute_update("UPDATE Passengers SET money = %s WHERE passenger_id = %s",(passenger_info['money'] - pay_amount, passenger_id))
+
+            print(f" 수신 {passenger_id} , {pay_amount}")
             return jsonify({
                 "status": "ok",
-                "user_id": user_id,
-                "remaining amount"  : 10000,
+                "passenger_id": passenger_id,                
+                "message": "결제 완료"
             })
         
         @self.app.route('/charge', methods=['POST'])
         def charge():
-            user_id = request.json.get('user_id')
-            charge_amount = request.json.get('charge_amount')
-            # DB에서 user_id로 결제 정보 조회
+            passenger_id = request.json.get('passenger_id')
+            pay_amount = request.json.get('pay_amount')
+            
+            db = Database()
 
-            print(f" 수신 {user_id} , {charge_amount}")
+            passenger_info = db.execute_select(
+                "SELECT * FROM Passengers WHERE passenger_id = %s",
+                (passenger_id,)
+            )
+            if not passenger_info:
+                return jsonify({"error": "회원정보 없음"}), 400
+            
+            passenger_info = passenger_info[0]            
+            
+            db.execute_update("UPDATE Passengers SET money = %s WHERE passenger_id = %s",(passenger_info['money'] + pay_amount, passenger_id))
+
+            print(f" 수신 {passenger_id} , {pay_amount}")
             return jsonify({
                 "status": "ok",
-                "user_id": user_id,
-                "remaining amount"  : 20000,
+                "passenger_id": passenger_id,                
+                "message": "결제 충전"
             })
 
         @self.app.route('/get_balance', methods=['POST'])
         def get_balance():
-            user_id = request.json.get('user_id')
-            # DB에서 user_id로 결제 정보 조회
+            passenger_id = request.json.get('passenger_id')
 
-            print(f"❌ 요청 실패: 필드 누락 - {user_id}")
+            db = Database()
+
+            passenger_info = db.execute_select(
+                "SELECT * FROM Passengers WHERE passenger_id = %s",
+                (passenger_id,)
+            )
+            if not passenger_info:
+                return jsonify({"error": "회원정보 없음"}), 400
+
             return jsonify({
                 "status": "ok",
-                "user_id": user_id,
-                "remaining amount"  : 30000,
+                "user_id": passenger_id,
+                "remaining amount"  : passenger_info[0]['money']
             })
         
+        @self.app.route('/hendler_test', methods=['POST'])
+        def hendler_test():
+            vehicle_id = request.json.get('vehicle_id')
+            event_type = request.json.get('event_type')
+            data = request.json.get('data')
+            
+            status = self.manager.taxi_event_service(vehicle_id, event_type, data)
+
+            return jsonify({
+                "status": status
+            })
+
     def run(self):
         print("🚀 REST 서버 실행 시작")
         self.app.run(host='0.0.0.0', port=8000)
