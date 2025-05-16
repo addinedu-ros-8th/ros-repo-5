@@ -1,5 +1,8 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsEllipseItem, QGraphicsPixmapItem
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow,
+    QGraphicsScene, QGraphicsEllipseItem, QGraphicsPixmapItem
+)
 from PyQt6.QtGui import QPixmap, QColor
 from PyQt6.QtCore import Qt
 from PyQt6 import uic
@@ -30,7 +33,7 @@ class AdminMainWindow(QMainWindow):
 
         self.button_log.clicked.connect(self.print_log)
 
-        # 맵 + 택시 아이콘 초기화
+        # 그래픽 맵 초기화
         self.setup_graphics_view()
 
     def setup_graphics_view(self):
@@ -38,14 +41,17 @@ class AdminMainWindow(QMainWindow):
         self.scene = QGraphicsScene()
         self.graphicsView_map.setScene(self.scene)
 
-        # 지도 이미지
+        # 지도 이미지 경로
         bg_pixmap = QPixmap("/home/vit/dev_ws/project/ros-repo-5/admin/src/admin_gui/data/map/map.png")
         if not bg_pixmap.isNull():
             self.bg_item = QGraphicsPixmapItem(bg_pixmap)
             self.scene.addItem(self.bg_item)
 
-             # 🎯 수정된 fitInView (boundingRect + Qt enum 사용)
-            self.graphicsView_map.fitInView(self.bg_item.boundingRect(), Qt.AspectRatioMode.KeepAspectRatio)
+            # scene 영역을 이미지 크기로 설정
+            self.scene.setSceneRect(self.bg_item.boundingRect())
+
+            # QGraphicsView에 꽉 차게 표시
+            self.graphicsView_map.fitInView(self.scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
         else:
             print("⚠️ map.png 이미지가 존재하지 않거나 경로가 잘못되었습니다.")
 
@@ -54,11 +60,18 @@ class AdminMainWindow(QMainWindow):
         self.taxi_item.setBrush(QColor("magenta"))
         self.scene.addItem(self.taxi_item)
 
-        # 초기 위치
+        # 초기 위치 지정
         self.taxi_item.setPos(150, 300)
 
     def print_log(self):
         print("LOG 버튼이 눌렸습니다.")
+
+    def resizeEvent(self, event):
+        """창 리사이즈 시 자동으로 map을 꽉 맞게 다시 fit"""
+        super().resizeEvent(event)
+        if hasattr(self, "scene") and hasattr(self, "graphicsView_map"):
+            self.graphicsView_map.fitInView(self.scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
