@@ -3,6 +3,9 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphics
 from PyQt6.QtGui import QPixmap, QColor
 from PyQt6 import uic
 
+from qt_material import apply_stylesheet
+
+
 class AdminMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -58,5 +61,6 @@ class AdminMainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = AdminMainWindow()
+    apply_stylesheet(app, theme='dark_blue.xml')
     window.show()
     sys.exit(app.exec())
