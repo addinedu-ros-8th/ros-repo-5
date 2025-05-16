@@ -63,7 +63,7 @@ class VideoSender:
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def send_frame(self, frame):
-        _, buffer = cv2.imencode('.jpg', frame)
+        _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
         compressed = zlib.compress(buffer.tobytes())
         self.udp_socket.sendto(compressed, self.client_address)
 
@@ -83,7 +83,7 @@ class commandPublisher(Node):
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.yolo_seg_model = YOLO("/home/pepsi/Downloads/yolo_seg.pt").to(device)
+        self.yolo_seg_model = YOLO("/home/pepsi/Downloads/yolo_seg200.pt").to(device)
         self.yolo_detect_model = YOLO("/home/pepsi/Downloads/yolo_detect.pt").to(device)
 
         self.direction = 0
@@ -108,27 +108,45 @@ class commandPublisher(Node):
         return curvature_radius
     
 
-    def draw_lane_visualization(self, image, left_pts, right_pts):
+    def draw_lane_visualization(self, image, left_pts, right_pts, frame_num=0, curvature=None, offset=0.0):
         if len(left_pts) < 2 or len(right_pts) < 2:
             return image
 
+        # Create the shaded area between lanes (change color to green)
         polygon = np.concatenate((left_pts, right_pts[::-1]), axis=0).astype(np.int32)
         overlay = image.copy()
-        cv2.fillPoly(overlay, [polygon], color=(255, 255, 0))
+        cv2.fillPoly(overlay, [polygon], color=(0, 255, 0))  # Green color
         image = cv2.addWeighted(overlay, 0.4, image, 0.6, 0)
 
-        cv2.polylines(image, [left_pts.astype(np.int32)], False, (0, 255, 255), 3)
-        cv2.polylines(image, [right_pts.astype(np.int32)], False, (255, 255, 255), 3)
+        # Draw lane markings
+        cv2.polylines(image, [left_pts.astype(np.int32)], False, (0, 255, 255), 3)  # Yellow for left lane
+        cv2.polylines(image, [right_pts.astype(np.int32)], False, (255, 255, 255), 3)  # White for right lane
 
-        mid_pts = ((left_pts + right_pts[:len(left_pts)]) / 2).astype(np.int32)
-        cv2.polylines(image, [mid_pts], False, (0, 255, 0), 2)
+        # Draw midline
+        min_len = min(len(left_pts), len(right_pts))
+        mid_pts = ((left_pts[:min_len] + right_pts[:min_len]) / 2).astype(np.int32)
+        cv2.polylines(image, [mid_pts], False, (0, 255, 0), 2)  # Green midline
+
+        # Add text overlay
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.7
+        color = (255, 0, 0)  # Red text to match the image
+        thickness = 2
+
+        # Frame number
+        cv2.putText(image, f"Frame: {frame_num:04d}", (10, 30), font, font_scale, color, thickness)
+        # Curvature radius
+        curvature_text = f"Curve radius: {curvature:.2f}m" if curvature else "Curve radius: N/A"
+        cv2.putText(image, curvature_text, (10, 60), font, font_scale, color, thickness)
+        # Offset from center
+        cv2.putText(image, f"{offset:.3f}m from center", (10, 90), font, font_scale, color, thickness)
 
         return image
-    
-    def lane_keeping(self, frame):
+
+    def lane_keeping(self, frame, frame_num=0):
         results = self.yolo_seg_model(frame)
         if not results or results[0].masks is None or results[0].boxes is None:
-            return results[0].plot(), 0.0, 0.0
+            return frame, self.prev_offset, self.prev_curvature 
         
         masks = results[0].masks.data.cpu().numpy()
         classes = results[0].boxes.cls.cpu().numpy()
@@ -172,10 +190,11 @@ class commandPublisher(Node):
             radius = float(self.prev_curvature)
             return results[0].plot(), offset, radius
 
-        mid_pts = (left_pts + right_pts[:len(left_pts)]) / 2
+        min_len = min(len(left_pts), len(right_pts))
+        mid_pts = (left_pts[:min_len] + right_pts[:min_len]) / 2
         offset = mid_pts[-1][0] - w // 2
         curvature = self.calculate_curvature(mid_pts[:, 0], mid_pts[:, 1])
-        visual = self.draw_lane_visualization(frame.copy(), left_pts, right_pts)
+        visual = self.draw_lane_visualization(frame.copy(), left_pts, right_pts, frame_num, curvature, offset)
 
         offset = float(offset)
         radius = float(curvature if curvature else 0.0)
@@ -183,11 +202,15 @@ class commandPublisher(Node):
         self.prev_offset = offset
         self.prev_curvature = radius
 
-        return visual, offset, radius
+        return results[0].plot(), offset, radius
 
     
     def obstacle_avoidance(self, frame):
         linear_x, angular_z = 0.0, 0.0
+        if self.angle_min is None or self.angle_increment is None or self.lidar_ranges is None:
+            self.get_logger().warn("LIDAR 정보 수신 전이므로 obstacle_avoidance 스킵")
+            return frame, self.base_speed, 0.0
+        
         stopline_detected = False
         stopline_y_threshold = frame.shape[0] * 0.7  # 이미지 하단 30% 내 정지선 감지
 
@@ -276,8 +299,19 @@ class commandPublisher(Node):
         h, w = frame.shape[:2]
         newcameramtx, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coeff, (w, h), 1, (w, h))
         undistorted = cv2.undistort(frame, camera_matrix, dist_coeff, None, newcameramtx)
+
+        # HSV로 변환
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        # 밝기 줄이기 (0.0 ~ 1.0 사이 값)
+        brightness_factor2 = 0.7                    
+        saturation_factor = 1.5
+        hsv[:,:,2] = np.clip(hsv[:,:,2] * brightness_factor2, 0, 255).astype(np.uint8)
+        hsv[:,:,1] = np.clip(hsv[:,:,1] * saturation_factor, 0, 255).astype(np.uint8)
+
+        result = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
         
-        detect_frame, offset, radius = self.obstacle_avoidance(undistorted)
+        detect_frame, offset, radius = self.obstacle_avoidance(result)
 
         annotate_frame, linear_x, angular_z = self.lane_keeping(detect_frame)
 
@@ -292,7 +326,7 @@ class commandPublisher(Node):
         cv2.imshow('frame', annotate_frame)
         cv2.waitKey(1)
 
-        self.video_sender.send_frame(annotate_frame)
+        # self.video_sender.send_frame(annotate_frame)
 
     def direction_callback(self, msg):
         self.direction = msg.direction
