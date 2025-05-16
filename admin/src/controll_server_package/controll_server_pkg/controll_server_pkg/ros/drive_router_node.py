@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from geometry_msgs.msg import Twist
-from ai_server_package_msgs.msg import DetectionWithPinky
+from ai_server_package_msgs.msg import CommandInfo, DriveInfo
 from controll_server_pkg.common.PIDController import PID
 import time
 import networkx as nx
@@ -11,9 +11,9 @@ import numpy as np
 from signal_processor import SignalProcessor
 
 class DriveRouterNode(Node):
-    def __init__(self, manage):
+    def __init__(self, manager):
         super().__init__('drive_router_node')
-        self.declare_parameter('goal_node', 'L')
+        self.declare_parameter('goal_node', 'R')
         self.goal_node = self.get_parameter('goal_node').get_parameter_value().string_value
 
         # Declare ROS2 parameters (PID parameters and tolerance)
@@ -41,33 +41,31 @@ class DriveRouterNode(Node):
 
         self.G = nx.DiGraph()
         self.G.add_edges_from([
-            ('A', 'W'), ('W', 'R'), ('B', 'A'), ('C', 'B'), ('C', 'E'), ('E', 'K'), ('D', 'C'),
-            ('F', 'G'), ('G', 'K'), ('H', 'I'), ('I', 'M'),
-            ('N', 'Y'), ('Y', 'F'),('J', 'F'), ('K', 'U'), ('K', 'O'), ('L', 'B'), ('L', 'H'), ('I', 'Z'), ('Z', 'Q'), ('M', 'Q'), ('Q', 'P'),
-            ('N', 'J'), ('O', 'N'), ('P', 'L'), ('P', 'L'),
-            ('R', 'S'), ('S', 'T'), ('S', 'U'), ('T', 'L'), ('U', 'V'), ('V', 'X'), ('X', 'D')
+            ('A', 'R'), ('B', 'A'), ('C', 'B'), ('C', 'E'), ('E', 'K'), ('D', 'C'),
+            ('F', 'G'), ('G', 'K'), ('K', 'O'),('O', 'N'), ('N', 'J'),('J', 'F'), ('N', 'Y'), ('Y', 'F'), ('K', 'U'),
+            ('L', 'B'), ('L', 'H'), ('H', 'I'), ('I', 'M'), ('I', 'Z'), ('Z', 'Q'), ('M', 'Q'), ('Q', 'P'), ('P', 'L'),
+            ('R', 'S'), ('S', 'T'), ('S', 'U'), ('T', 'L'), ('U', 'V'), ('V', 'D')
         ])
 
         self.positions = {
-            "A": (192, 170), "B": (621, 88), "C": (1130, 64), "D": (1500, 115), "E": (1150, 159), "W": (115, 528),
+            "A": (192, 170), "B": (621, 88), "C": (1130, 64), "D": (1500, 115), "E": (1150, 159),
             "F": (282, 244), "G": (631, 216), "H": (1138, 274), "I": (1387, 328),
             "J": (252, 472), "K": (780, 502), "L": (904, 515), "M": (1466, 560), "Y": (450, 483), "Z": (1196, 552),
             "N": (267, 694), "O": (598, 734), "P": (1114, 817), "Q": (1448, 770),
-            "R": (210, 944), "S": (555, 984), "T": (575, 857), "U": (1156, 941), "V": (1512, 904), "X": (1576, 484),
+            "R": (210, 944), "S": (555, 984), "T": (575, 857), "U": (1156, 941), "V": (1512, 904),
         }
 
         self.marker_positions = {
-            "A": (0.213, 0.112), "B": (0.225, 0.178), "C": (0.209, 0.223), "D": (0.17, 0.225), "E": (0.166, 0.182), "X": (0.082, 0.0),
+            "A": (0.213, 0.112), "B": (0.225, 0.178), "C": (0.209, 0.223), "D": (0.17, 0.225), "E": (0.166, 0.182),
             "F": (0.172, 0.094), "G": (0.179, 0.137), "H": (0.134, 0.149), "I": (0.104, 0.156),
             "J": (0.095, 0.025), "K": (0.77, 0.065), "L": (0.068, 0.071), "M": (0.027, 0.094), "Y": (0.1, 0.052), "Z": (0.051, 0.096),
             "N": (0.043, -0.021), "O": (0.01, -0.011), "P": (-0.031, 0.005), "Q": (-0.032, 0.036),
-            "R": (-0.026, -0.089), "S": (-0.063, -0.075), "T": (-0.027, -0.045), "U": (-0.068, -0.022), "V": (-0.069, 0.015), "X": (0.039,0.121)
-                }
+            "R": (-0.026, -0.089), "S": (-0.063, -0.075), "T": (-0.027, -0.045), "U": (-0.068, -0.022), "V": (-0.069, 0.015),
+        }
 
         self.explicit_directions = {
             # 좌측 루프
-            ('A', 'W'): 'left',
-            ('W', 'R'): 'left',
+            ('A', 'R'): 'left',
             ('R', 'S'): 'forward',
             ('S', 'T'): 'left',
             ('T', 'L'): 'left',
@@ -99,26 +97,29 @@ class DriveRouterNode(Node):
             ('L', 'H'): 'right',
 
             # 오른쪽 진입 경로
-            ('V', 'X'): 'left',
-            ('X', 'D'): 'left',
+            ('V', 'D'): 'forward',
             ('U', 'V'): 'forward',
             ('S', 'U'): 'forward',
 
             # 중앙
-            ('D', 'C'): 'forward',
+            ('D', 'C'): 'left',
         }
 
         self.sp = SignalProcessor(window_size=5, alpha=0.3)
         self.behavior = {"forward": 0, "left": 1, "right": 2, 'stop': 3}
 
         qos_profile = QoSProfile(depth=10, reliability=QoSReliabilityPolicy.RELIABLE)
-        self.subscription = self.create_subscription(DetectionWithPinky, 'drive', self.listener_callback, qos_profile)
+        self.subscriber = self.create_subscription(CommandInfo, 'drive', self.yolo_callback, qos_profile)
+        self.publisher = self.create_publisher(DriveInfo, '/nav_direction', 10)
         self.cmd_vel_pub_pinky1 = self.create_publisher(Twist, '/cmd_vel', qos_profile)
         self.cmd_vel_pub_pinky2 = self.create_publisher(Twist, '/cmd_vel', qos_profile)
 
-        self.pinky_num = None
+        self.vehicle_id = None
         self.offset = 0
         self.radius = 0
+        self.linear_x = 0
+        self.angular_z = 0
+        self.manager = manager
         self.arrived = False
 
         self.video = cv2.VideoCapture(2)
@@ -177,11 +178,14 @@ class DriveRouterNode(Node):
                     if len(path) >= 2:
                         current_node = path[0]
                         next_node = path[1]
-                        self.get_logger().info(f"current_node: {current_node}, next_node: {next_node}")
-                        
                         direction = self.explicit_directions[(current_node, next_node)]
                         self.last_behavior = self.behavior[direction]
-                        self.get_logger().info(f"행동: {self.behavior[direction]}")
+
+                        msg = DriveInfo()
+                        msg.direction = self.behavior[direction]
+                        self.publisher.publish(msg)
+                        
+                        self.get_logger().info(f"current_node: {current_node}, next_node: {next_node}, 행동: {self.behavior[direction]}")
 
                 cv2.aruco.drawDetectedMarkers(frame, corners)
                 cv2.drawFrameAxes(frame, self.k, self.d, rvec, tvec, self.marker_length * 0.5)
@@ -206,30 +210,28 @@ class DriveRouterNode(Node):
         else:
             # 네비게이션 행동에 따라 PID 제어 적용
             if behavior == 0:  # 전진
-                twist.linear.x = 0.3
+                twist.linear.x = self.linear_x
                 # PID로 오프셋 기반 각속도 계산 (목표: 오프셋 = 0)
                 angular_z = self.pid.update(self.offset)
                 twist.angular.z = angular_z
 
             elif behavior == 1:  # 좌회전
-                twist.linear.x = 0.3
+                twist.linear.x = self.linear_x
                 # PID로 좌회전 제어, 최소 회전 속도 보장
-                angular_z = self.pid.update(self.offset)
                 base_output = self.pid.update(self.offset)
                 safe_radius = max(abs(self.radius), 1e-3)
-                curvature_gain = max(0.5, min(2.0, 1.2 / (safe_radius / 100.0)))
+                curvature_gain = max(1.0, min(3.0, 2.0 / (safe_radius / 100.0)))
                 angular_z = base_output * curvature_gain * 1.2
-                twist.angular.z = max(angular_z, 0.5)  # 최소 좌회전 각속도 0.5
+                twist.angular.z = min(angular_z, 0.7)   # 최소 좌회전 각속도 0.5
 
             elif behavior == 2:  # 우회전
-                twist.linear.x = 0.3
+                twist.linear.x = self.linear_x
                 # PID로 우회전 제어, 최소 회전 속도 보장
-                angular_z = self.pid.update(self.offset)
                 base_output = self.pid.update(self.offset)
                 safe_radius = max(abs(self.radius), 1e-3)
-                curvature_gain = max(0.5, min(2.0, 1.2 / (safe_radius / 100.0)))
+                curvature_gain = max(1.0, min(3.0, 2.0 / (safe_radius / 100.0)))
                 angular_z = base_output * curvature_gain * 1.2
-                twist.angular.z = min(angular_z, -0.5)  # 최소 우회전 각속도 -0.5
+                twist.angular.z = min(angular_z, -0.7)
 
             elif behavior == 3:  # 정지
                 twist.linear.x = 0.0
@@ -243,10 +245,13 @@ class DriveRouterNode(Node):
         self.get_logger().info(f"linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
         cv2.waitKey(1)
 
-    def listener_callback(self, msg):
-        self.pinky_num = msg.pinky_num
+    def yolo_callback(self, msg):
+        self.vehicle_id = msg.vehicle_id
         self.offset = msg.offset
         self.radius = msg.radius
+        self. linear_x = msg.linear_x
+        self. angular_z = msg.angular_z
+        
 
     def destroy_node(self):
         self.video.release()
