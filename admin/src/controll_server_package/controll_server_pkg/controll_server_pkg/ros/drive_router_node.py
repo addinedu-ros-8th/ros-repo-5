@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from geometry_msgs.msg import Twist
-from ai_server_package_msgs.msg import CommandInfo, DriveInfo
+from ai_server.ai_server_package_msgs.msg import CommandInfo, DriveInfo
 from controll_server_pkg.common.PIDController import PID
 import time
 import networkx as nx
