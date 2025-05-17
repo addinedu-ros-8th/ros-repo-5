@@ -83,7 +83,7 @@ class commandPublisher(Node):
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.yolo_seg_model = YOLO("/home/pepsi/Downloads/yolo_seg200.pt").to(device)
+        self.yolo_seg_model = YOLO("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/runs/segment/yolov8_epoch300/weights/best.pt").to(device)
         self.yolo_detect_model = YOLO("/home/pepsi/Downloads/yolo_detect.pt").to(device)
 
         self.direction = 0
@@ -228,9 +228,8 @@ class commandPublisher(Node):
                 # 바운딩 박스 중심 계산
                 x1, y1, x2, y2 = box.xyxy[0]
                 center_x = (x1 + x2) / 2
-                center_y = (y1 + y2) / 2
 
-                # 카메라 FOV와 LIDAR 각도 매핑 (FOV 60도 가정)
+                # 카메라 FOV와 LIDAR 각도 매핑
                 fov = 60.0
                 img_width = frame.shape[1]
                 angle_per_pixel = fov / img_width
@@ -245,13 +244,19 @@ class commandPublisher(Node):
                 if 0 <= index < len(self.lidar_ranges):
                     distance = self.lidar_ranges[index]
                     if distance != float('inf') and distance != float('nan'):
-                        self.get_logger().info(
-                            f'{class_name} detected at {distance:.2f}m, Angle: {angle:.2f}deg')
+                        self.get_logger().info(f'{class_name} detected at {distance:.2f}m, Angle: {angle:.2f}deg')
+
+                 # 횡단보도 감지: 잠깐 정지 후 이동
+                if class_name == 'crosswalk':
+                    self.stop_flag = False
+                    self.base_speed = 0.3
+                    self.get_logger().info('crosswalk detected')
 
                 # 보행자 또는 핑키: 50m 이내 정지
-                if class_name in ['pedestrian', 'pinky'] and distance < 50.0:
+                elif class_name in ['pedestrian', 'pinky'] and distance < 20.0:
                     self.stop_flag = True
-                    self.get_logger().info(f'Stopping robot: {class_name} within 50m')
+                    self.get_logger().info(f'Stopping robot: {class_name} within 20cm')
+
 
                 # 신호등: 빨간불/노란불 감지
                 elif class_name in ['redlight', 'yellowlight']:
@@ -267,7 +272,7 @@ class commandPublisher(Node):
                             _, _, _, stopline_y2 = inner_box.xyxy[0]
                             if stopline_y2 > stopline_y_threshold:
                                 stopline_detected = True
-                                self.get_logger().info('Stopline detected near bottom of frame')
+                                self.get_logger().info('Stopline detected')
                                 break
 
                     # 신호등 + 정지선 감지 시 정지
@@ -275,11 +280,23 @@ class commandPublisher(Node):
                         self.stop_flag = True
                         self.get_logger().info(f'Stopping robot: {class_name} with stopline detected')
 
+                elif class_name == 'greenlight':  # 파란불 감지 시 이동
+                    self.stop_flag = False
+                    self.get_logger().info('green light detected')
+                
                 # 속도 제한 표지판
                 elif class_name == 'speedlimit_30':
                     self.base_speed = 0.3
+                    self.get_logger().info('speed limit 30 detected')
                 elif class_name == 'speedlimit_60':
                     self.base_speed = 0.5
+                    self.get_logger().info('speed limit 60 detected')
+
+
+                else:
+                    self.stop_flag = False
+                    self.base_speed = 0.5
+
 
         if self.stop_flag:
             linear_x = 0.0
