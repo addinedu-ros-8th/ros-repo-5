@@ -65,12 +65,12 @@ class DriveRouterNode(Node):
 
         self.explicit_directions = {
             # 좌측 루프
-            ('A', 'R'): 'left',
-            ('R', 'S'): 'forward',
+            ('A', 'R'): 'forward',
+            ('R', 'S'): 'left',
             ('S', 'T'): 'left',
             ('T', 'L'): 'left',
             ('L', 'B'): 'left',
-            ('B', 'A'): 'forward',
+            ('B', 'A'): 'left',
 
             # 우측 루프
             ('C', 'B'): 'forward',
@@ -107,6 +107,8 @@ class DriveRouterNode(Node):
 
         self.sp = SignalProcessor(window_size=5, alpha=0.3)
         self.behavior = {"forward": 0, "left": 1, "right": 2, 'stop': 3}
+        self.path = None
+        self.current_index = 0
 
         qos_profile = QoSProfile(depth=10, reliability=QoSReliabilityPolicy.RELIABLE)
         self.subscriber = self.create_subscription(CommandInfo, 'drive', self.yolo_callback, qos_profile)
@@ -146,13 +148,52 @@ class DriveRouterNode(Node):
 
     def find_nearest_node(self, robot_pos):
         return min(self.marker_positions.items(), key=lambda x: np.linalg.norm(np.array(x[1]) - np.array(robot_pos)))[0]
+    
+    def set_goal_path(self, current_node, goal_node):
+        if nx.has_path(self.G, current_node, goal_node):
+            self.path = nx.shortest_path(self.G, current_node, goal_node)
+            self.current_index = 0
+            self.arrived = False
+            self.get_logger().info(f"경로 설정됨: {self.path}")
+        else:
+            self.get_logger().error("경로 없음")
+
+    def update_current_node(self, robot_pos):
+        # path 내에서 가장 가까운 노드 탐색
+        remaining_path = self.path[self.current_index:]
+        nearest_node = min(
+            remaining_path,
+            key=lambda node: np.linalg.norm(np.array(self.marker_positions[node]) - np.array(robot_pos))
+        )
+        nearest_index = self.path.index(nearest_node)
+
+        # 목표에 가까워지면 다음 노드로 이동
+        goal_pos = self.marker_positions[self.path[-1]]
+        if np.linalg.norm(np.array(robot_pos) - np.array(goal_pos)) < 0.03:
+            self.arrived = True
+            self.last_behavior = "stop"
+            return None
+
+        if nearest_index < len(self.path) - 1:
+            self.current_index = nearest_index
+            current_node = self.path[self.current_index]
+            next_node = self.path[self.current_index + 1]
+            direction = self.explicit_directions[(current_node, next_node)]
+            self.last_behavior = self.behavior[direction]
+            self.get_logger().info(f"[경로추적] {current_node} → {next_node}, 행동: {direction}")
+            
+            msg = DriveInfo()
+            msg.direction = self.behavior[direction]
+            self.publisher.publish(msg)
+
+        return self.last_behavior
+
 
     def pose_estimation(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         aruco_dict = cv2.aruco.getPredefinedDictionary(self.aruco_dict_type)
         detector = cv2.aruco.ArucoDetector(aruco_dict, cv2.aruco.DetectorParameters())
         corners, ids, _ = detector.detectMarkers(gray)
-        direction = 'stop'
 
         if self.goal_node not in self.marker_positions:
             self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
@@ -165,30 +206,13 @@ class DriveRouterNode(Node):
                 pos = tvec[0][0]
                 x, y = pos[0], pos[1]
                 robot_pos = (round(self.sp.moving_average(x), 3), round(self.sp.moving_average(y), 3))
-                node = self.find_nearest_node(robot_pos)
 
-                if np.linalg.norm(np.array(robot_pos) - np.array(self.marker_positions[self.goal_node])) < 0.03:
-                    self.get_logger().info("도착")
-                    self.arrived = True
-                    self.last_behavior = "stop"
-                    return self.behavior[self.last_behavior]
+                # 최초 경로 설정
+                if self.path is None:
+                    current_node = self.find_nearest_node(robot_pos)
+                    self.set_goal_path(current_node, self.goal_node)
 
-                if nx.has_path(self.G, node, self.goal_node):
-                    path = nx.shortest_path(self.G, node, self.goal_node)
-                    if len(path) >= 2:
-                        current_node = path[0]
-                        next_node = path[1]
-                        direction = self.explicit_directions[(current_node, next_node)]
-                        self.last_behavior = self.behavior[direction]
-
-                        msg = DriveInfo()
-                        msg.direction = self.behavior[direction]
-                        self.publisher.publish(msg)
-                        
-                        self.get_logger().info(f"current_node: {current_node}, next_node: {next_node}, 행동: {self.behavior[direction]}")
-
-                cv2.aruco.drawDetectedMarkers(frame, corners)
-                cv2.drawFrameAxes(frame, self.k, self.d, rvec, tvec, self.marker_length * 0.5)
+                return self.update_current_node(robot_pos)
         else:
             self.get_logger().warn("마커 인식 실패")
             return self.behavior["stop"]
@@ -202,6 +226,7 @@ class DriveRouterNode(Node):
             return
 
         behavior = self.pose_estimation(frame)
+        self.get_logger().info(f"behavior: {behavior}")
 
         twist = Twist()
         if self.arrived:
@@ -218,28 +243,22 @@ class DriveRouterNode(Node):
             elif behavior == 1:  # 좌회전
                 twist.linear.x = self.linear_x
                 # PID로 좌회전 제어, 최소 회전 속도 보장
-                base_output = self.pid.update(self.offset)
-                safe_radius = max(abs(self.radius), 1e-3)
-                curvature_gain = max(1.0, min(3.0, 2.0 / (safe_radius / 100.0)))
-                angular_z = base_output * curvature_gain * 1.2
-                twist.angular.z = min(angular_z, 0.7)   # 최소 좌회전 각속도 0.5
+                angular_z = self.pid.update(self.offset)
+                twist.angular.z = min(angular_z, 0.5)   # 최소 좌회전 각속도 0.5
 
             elif behavior == 2:  # 우회전
                 twist.linear.x = self.linear_x
                 # PID로 우회전 제어, 최소 회전 속도 보장
-                base_output = self.pid.update(self.offset)
-                safe_radius = max(abs(self.radius), 1e-3)
-                curvature_gain = max(1.0, min(3.0, 2.0 / (safe_radius / 100.0)))
-                angular_z = base_output * curvature_gain * 1.2
-                twist.angular.z = min(angular_z, -0.7)
+                angular_z = self.pid.update(self.offset)
+                twist.angular.z = min(angular_z, -0.5)
 
             elif behavior == 3:  # 정지
                 twist.linear.x = 0.0
                 twist.angular.z = 0.0
 
-        if self.pinky_num == 1:
+        if self.vehicle_id == 1:
             self.cmd_vel_pub_pinky1.publish(twist)
-        elif self.pinky_num == 2:
+        elif self.vehicle_id == 2:
             self.cmd_vel_pub_pinky2.publish(twist)
 
         self.get_logger().info(f"linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
@@ -249,8 +268,8 @@ class DriveRouterNode(Node):
         self.vehicle_id = msg.vehicle_id
         self.offset = msg.offset
         self.radius = msg.radius
-        self. linear_x = msg.linear_x
-        self. angular_z = msg.angular_z
+        self.linear_x = msg.linear_x
+        # self.angular_z = msg.angular_z
         
 
     def destroy_node(self):

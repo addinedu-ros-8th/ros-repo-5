@@ -83,7 +83,7 @@ class commandPublisher(Node):
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.yolo_seg_model = YOLO("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/runs/segment/yolov8_epoch300/weights/best.pt").to(device)
+        self.yolo_seg_model = YOLO("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/runs/segment/yolov8_epoch200/weights/best.pt").to(device)
         self.yolo_detect_model = YOLO("/home/pepsi/Downloads/yolo_detect.pt").to(device)
 
         self.direction = 0
@@ -106,103 +106,56 @@ class commandPublisher(Node):
         y_eval = np.max(y_vals)
         curvature_radius = ((1 + (2*A*y_eval + fit[1])**2)**1.5) / np.abs(2*A)
         return curvature_radius
-    
 
-    def draw_lane_visualization(self, image, left_pts, right_pts, frame_num=0, curvature=None, offset=0.0):
-        if len(left_pts) < 2 or len(right_pts) < 2:
-            return image
+    def lane_keeping(self, frame):
+        results = self.yolo_seg_model(frame, conf=0.6)
 
-        # Create the shaded area between lanes (change color to green)
-        polygon = np.concatenate((left_pts, right_pts[::-1]), axis=0).astype(np.int32)
-        overlay = image.copy()
-        cv2.fillPoly(overlay, [polygon], color=(0, 255, 0))  # Green color
-        image = cv2.addWeighted(overlay, 0.4, image, 0.6, 0)
+        annotated_frame = results[0].plot()
 
-        # Draw lane markings
-        cv2.polylines(image, [left_pts.astype(np.int32)], False, (0, 255, 255), 3)  # Yellow for left lane
-        cv2.polylines(image, [right_pts.astype(np.int32)], False, (255, 255, 255), 3)  # White for right lane
+        masks = results[0].masks.data.cpu().numpy() if results[0].masks is not None else None 
+        classes = results[0].boxes.cls.cpu().numpy() if results[0].boxes is not None else None 
 
-        # Draw midline
-        min_len = min(len(left_pts), len(right_pts))
-        mid_pts = ((left_pts[:min_len] + right_pts[:min_len]) / 2).astype(np.int32)
-        cv2.polylines(image, [mid_pts], False, (0, 255, 0), 2)  # Green midline
-
-        # Add text overlay
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 0.7
-        color = (255, 0, 0)  # Red text to match the image
-        thickness = 2
-
-        # Frame number
-        cv2.putText(image, f"Frame: {frame_num:04d}", (10, 30), font, font_scale, color, thickness)
-        # Curvature radius
-        curvature_text = f"Curve radius: {curvature:.2f}m" if curvature else "Curve radius: N/A"
-        cv2.putText(image, curvature_text, (10, 60), font, font_scale, color, thickness)
-        # Offset from center
-        cv2.putText(image, f"{offset:.3f}m from center", (10, 90), font, font_scale, color, thickness)
-
-        return image
-
-    def lane_keeping(self, frame, frame_num=0):
-        results = self.yolo_seg_model(frame)
-        if not results or results[0].masks is None or results[0].boxes is None:
-            return frame, self.prev_offset, self.prev_curvature 
-        
-        masks = results[0].masks.data.cpu().numpy()
-        classes = results[0].boxes.cls.cpu().numpy()
-        
         h, w = frame.shape[:2]
+        
+        if masks is None:
+            return frame, self.prev_offset, self.prev_curvature
+        
+        left_pts, right_pts = None, None
 
-        right_x, right_y, left_x, left_y = [], [], [], []
-
-        dashed_candidates = []
         for i, cls in enumerate(classes):
-            mask = masks[i]
-            ys, xs = np.where(mask > 0)
-            if len(xs) == 0:
+            y_indices, x_indices = np.where(masks[i] > 0.5)
+            if len(x_indices) == 0:
                 continue
 
-            x_mean = np.mean(xs)
+            avg_x = np.mean(x_indices)
 
             if cls == 0:
-                right_x.extend(xs)
-                right_y.extend(ys)
-            elif cls in [1, 2]:
-                if (self.direction == 0) or (self.direction == 1 and x_mean < w // 2) or (self.direction == 2 and x_mean > w // 2):
-                    dashed_candidates.append((x_mean, xs, ys))
+                right_pts = avg_x
+            else:
+                left_pts = avg_x
 
-        if dashed_candidates:
-            _, xs_best, ys_best = min(dashed_candidates, key=lambda x: abs(x[0] - w // 2))
-            left_x.extend(xs_best)
-            left_y.extend(ys_best)
+        
+        if left_pts is not None and right_pts is not None:
+            center_x = float((left_pts + right_pts) / 2)
+        elif left_pts is not None:
+            center_x = int(left_pts)
+        elif right_pts is not None:
+            center_x = int(right_pts)
 
-        if len(left_x) >= 2 and len(right_x) >= 2:
-            left_pts = np.array(sorted(zip(left_x, left_y), key=lambda p: p[1]))
-            right_pts = np.array(sorted(zip(right_x, right_y), key=lambda p: p[1]))
-        elif len(right_x) >= 2:
-            right_pts = np.array(sorted(zip(right_x, right_y), key=lambda p: p[1]))
-            left_pts = np.array([[x - 550, y] for x, y in right_pts], dtype=np.int32)
-        elif len(left_x) >= 2:
-            left_pts = np.array(sorted(zip(left_x, left_y), key=lambda p: p[1]))
-            right_pts = np.array([[x + 550, y] for x, y in left_pts], dtype=np.int32)
-        else:
-            offset = float(self.prev_offset)
-            radius = float(self.prev_curvature)
-            return results[0].plot(), offset, radius
 
-        min_len = min(len(left_pts), len(right_pts))
-        mid_pts = (left_pts[:min_len] + right_pts[:min_len]) / 2
-        offset = mid_pts[-1][0] - w // 2
-        curvature = self.calculate_curvature(mid_pts[:, 0], mid_pts[:, 1])
-        visual = self.draw_lane_visualization(frame.copy(), left_pts, right_pts, frame_num, curvature, offset)
+        offset = self.prev_offset  # 기본값: 이전 offset 유지
+        if center_x is not None:
+            image_center = w / 2
+            offset = center_x - image_center  # 차선 중심과 이미지 중심의 차이
+            cv2.line(annotated_frame, (int(center_x), 0), (int(center_x), h), (0, 255, 255), 2)  # 차선 중심선
+            self.prev_center_x = center_x 
+            self.prev_offset = offset  # offset 저장
+        
+        # Curvature는 아직 구현되지 않음, 0.0으로 유지
+        curvature = 0.0
 
-        offset = float(offset)
-        radius = float(curvature if curvature else 0.0)
 
-        self.prev_offset = offset
-        self.prev_curvature = radius
-
-        return results[0].plot(), offset, radius
+        return annotated_frame, offset, curvature
 
     
     def obstacle_avoidance(self, frame):
@@ -328,9 +281,9 @@ class commandPublisher(Node):
 
         result = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
         
-        detect_frame, offset, radius = self.obstacle_avoidance(result)
+        detect_frame, linear_x, angular_z = self.obstacle_avoidance(result)
 
-        annotate_frame, linear_x, angular_z = self.lane_keeping(detect_frame)
+        annotate_frame, offset, radius = self.lane_keeping(detect_frame)
 
         msg = CommandInfo()
         msg.vehicle_id = self.vehicle_id
