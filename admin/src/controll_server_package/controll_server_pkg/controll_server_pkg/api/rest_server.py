@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from controll_server_pkg.common.dispatcher import dispatch
 from controll_server_pkg.common.database import Database
-
+import hashlib
 
 class RestServer:
     def __init__(self, manager):
@@ -28,6 +28,37 @@ class RestServer:
             else:
                 return jsonify({"error": "ros_drive not available"}), 500
         
+
+        @self.app.route('/login', methods=['POST'])
+        def login():
+            
+            id = request.json.get('id')
+            password = request.json.get('password')            
+            
+            password_hash = hash_password(password)
+
+            db = Database()
+
+            passenger_info = db.execute_select(
+                "SELECT * FROM Passengers WHERE id = %s AND password = %s",
+                (id,password_hash)
+            )
+
+            if not passenger_info:
+                return jsonify({"error": "회원정보 없음"}), 400                
+            
+            passenger_info = passenger_info[0]
+
+            return jsonify({
+                "status": "ok",
+                "passenger_id": passenger_info['passenger_id']
+            })
+
+        # ✅ 해시 함수
+        def hash_password(password):
+            # ✅ 고정된 salt 문자열
+            SALT = "addintaxi_salt"
+            return hashlib.sha256((password + SALT).encode()).hexdigest()
 
         @self.app.route('/call_taxi', methods=['POST'])
         def call():
@@ -113,7 +144,7 @@ class RestServer:
                 updates.append(f"battery={data['battery']}")
             
             if 'state' in data:
-                taxi.update_battery(data['state'])
+                taxi.update_state(data['state'])
                 updates.append(f"state={data['state']}")
 
             if not updates:
@@ -246,8 +277,8 @@ class RestServer:
                 "remaining amount"  : passenger_info[0]['money']
             })
         
-        @self.app.route('/hendler_test', methods=['POST'])
-        def hendler_test():
+        @self.app.route('/check_boarding', methods=['POST'])
+        def check_boarding():
             vehicle_id = request.json.get('vehicle_id')
             event_type = request.json.get('event_type')
             data = request.json.get('data')

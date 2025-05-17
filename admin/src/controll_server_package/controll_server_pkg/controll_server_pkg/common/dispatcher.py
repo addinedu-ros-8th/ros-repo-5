@@ -48,6 +48,7 @@ def get_astar_distance(x1, y1, x2, y2):
 def dispatch(taxis: dict, request: dict, call_id: int):
     db = Database()
     
+    start_x, start_y = request["start_x"], request["start_y"]
     dest_x, dest_y = request["dest_x"], request["dest_y"]
     required_passengers = request["passenger_count"]
 
@@ -66,7 +67,7 @@ def dispatch(taxis: dict, request: dict, call_id: int):
 
     taxi_distances = {}
     for taxi in available:
-        dist, path = get_astar_distance(taxi.location[0], taxi.location[1], dest_x, dest_y)
+        dist, path = get_astar_distance(taxi.location[0], taxi.location[1], start_x, start_y)
         taxi_distances[taxi.vehicle_id] = (dist, path)
         print(f"🚕 택시 {taxi.vehicle_id}: 예상 거리={dist:.1f}, 경로={path}")
 
@@ -76,8 +77,8 @@ def dispatch(taxis: dict, request: dict, call_id: int):
     dispatches_id = db.execute_insert(
         """INSERT INTO `Dispatches` (
             call_id, 
-            vehicle_id, 
-            end_position,
+            vehicle_id,                  
+            end_point,
             fare
         ) VALUES (
             %s, %s, %s, %s
@@ -91,10 +92,12 @@ def dispatch(taxis: dict, request: dict, call_id: int):
     )
 
     best_taxi.dispatch(
-        start_x=request["start_x"],
-        start_y=request["start_y"],
+        start_x=start_x,
+        start_y=start_y,
+        start_node=find_closest_node(start_x, start_y),
         dest_x=dest_x,
         dest_y=dest_y,
+        destination_node=find_closest_node(dest_x, dest_y),
         passenger_count=request["passenger_count"],
         passenger_id=request["passenger_id"],
         dispatches_id=dispatches_id

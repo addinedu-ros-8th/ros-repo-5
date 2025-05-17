@@ -16,9 +16,11 @@ class Taxi:
         self.dispatches_id = None
         self.passenger_state = None
 
-    def dispatch(self, start_x, start_y, dest_x, dest_y, passenger_count, passenger_id, dispatches_id):
+    def dispatch(self, start_x, start_y, start_node, dest_x, dest_y, destination_node, passenger_count, passenger_id, dispatches_id):
         self.start = (start_x, start_y)
+        self.start_node = start_node
         self.destination = (dest_x, dest_y)
+        self.destination_node = destination_node
         self.passenger_count = passenger_count
         self.passenger_id = passenger_id
         self.dispatches_id = dispatches_id
@@ -47,9 +49,13 @@ class Taxi:
             "state": self.state,
             "location": self.location,
             "start": self.start,
+            "start_node": self.start_node,
             "destination": self.destination,
+            "destination_node": self.destination_node,
             "passenger_count": self.passenger_count,
-            "passenger_id": self.passenger_id,
             "battery": self.battery,
-            "max_passengers": self.max_passengers
+            "max_passengers": self.max_passengers,
+            "passenger_id": self.passenger_id,
+            "dispatches_id": self.dispatches_id,
+            "passenger_state": self.passenger_state
         }
