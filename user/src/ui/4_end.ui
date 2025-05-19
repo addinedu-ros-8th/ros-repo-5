@@ -247,15 +247,15 @@ padding: 5px 10px;
       <height>351</height>
      </rect>
     </property>
-   </widget>
-   <widget class="QLineEdit" name="Pinky">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>260</y>
-      <width>521</width>
-      <height>351</height>
-     </rect>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/map/map.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="Icon1">

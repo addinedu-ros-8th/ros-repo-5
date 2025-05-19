@@ -47,11 +47,17 @@
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: #FFD43B;
-color: black;
-font-weight: bold;
-border-radius: 5px;
-padding: 5px 10px;
+         <string notr="true">QToolButton {
+    background-color: #FFD43B;
+    color: black;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: none;
+    qproperty-icon: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/Undo.png); /* 이미지 경로 지정 */
+    qproperty-iconSize: 40px 40px;  /* 이미지 크기 설정 */
+    text-align: center;            /* 텍스트 가운데 정렬 */
+}
 </string>
         </property>
         <property name="text">
@@ -179,7 +185,7 @@ padding: 5px 10px;</string>
      <property name="title">
       <string>충전</string>
      </property>
-     <widget class="QLineEdit" name="lineEdit_2">
+     <widget class="QLineEdit" name="charge">
       <property name="geometry">
        <rect>
         <x>100</x>

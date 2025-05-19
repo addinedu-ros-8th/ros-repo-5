@@ -258,16 +258,6 @@ padding: 5px 10px;
 }</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="Pinky">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>260</y>
-      <width>521</width>
-      <height>351</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="Icon1">
     <property name="geometry">
      <rect>
@@ -560,6 +550,27 @@ padding: 5px 10px;
     </property>
     <property name="text">
      <string>  - &gt;</string>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="Debug">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>630</y>
+      <width>211</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: #FFD43B;
+color: black;
+font-weight: bold;
+border-radius: 5px;
+padding: 5px 10px;
+</string>
+    </property>
+    <property name="text">
+     <string>디버그</string>
     </property>
    </widget>
   </widget>
