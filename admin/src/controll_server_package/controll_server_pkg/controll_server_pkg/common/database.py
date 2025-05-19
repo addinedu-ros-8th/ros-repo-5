@@ -44,7 +44,7 @@ class Database:
     def execute_update(self, query, params=None):
         cursor = self.conn.cursor()
         try:
-            print().info(f"🔋 query {query} params: {params}")
+            print(f"🔋 query {query} params: {params}")
             cursor.execute(query, params)
             self.conn.commit()
         finally:

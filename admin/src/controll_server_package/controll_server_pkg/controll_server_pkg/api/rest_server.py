@@ -102,7 +102,7 @@ class RestServer:
 
             if taxi:
                 print(f"✅ 택시 {taxi.vehicle_id} 배차됨 → 위치: {taxi.location} → 목적지: {taxi.start} → 승객 수: {taxi.passenger_count}")               
-
+                self.manager.drive_router_node(taxi.vehicle_id, 13, taxi.start_node)
                 return jsonify({
                     "status": "taxi dispatch",
                     "vehicle_id": taxi.vehicle_id,
@@ -215,6 +215,8 @@ class RestServer:
             if not passenger_info:
                 return jsonify({"error": "회원정보 없음"}), 400
             
+
+
             passenger_info = passenger_info[0]
             if passenger_info['money'] < pay_amount:
                 return jsonify({
@@ -246,7 +248,7 @@ class RestServer:
             )
             if not passenger_info:
                 return jsonify({"error": "회원정보 없음"}), 400
-            
+            print(passenger_info)
             passenger_info = passenger_info[0]            
             
             db.execute_update("UPDATE Passengers SET money = %s WHERE passenger_id = %s",(passenger_info['money'] + pay_amount, passenger_id))
@@ -279,6 +281,18 @@ class RestServer:
         
         @self.app.route('/check_boarding', methods=['POST'])
         def check_boarding():
+            vehicle_id = request.json.get('vehicle_id')
+            event_type = request.json.get('event_type')
+            data = request.json.get('data')
+            
+            status = self.manager.taxi_event_service(vehicle_id, event_type, data)
+
+            return jsonify({
+                "status": status
+            })
+        
+        @self.app.route('/check_landing', methods=['POST'])
+        def check_landing():
             vehicle_id = request.json.get('vehicle_id')
             event_type = request.json.get('event_type')
             data = request.json.get('data')

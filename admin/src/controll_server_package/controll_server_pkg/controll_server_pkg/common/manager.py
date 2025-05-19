@@ -11,11 +11,12 @@ class ServiceManager:
         self.taxi_event_service = None
         self.taxi_state_node = None
         self.drive_router_node = None
+        self.admin_gui_topic = None
 
         # 🚕 택시 객체 2대 초기화
         self.taxis = {
-            1: Taxi(1,4),
-            2: Taxi(2,6),
+            1: Taxi(1,4,'Y'),
+            2: Taxi(2,6,'Z'),
         }
 
     # 🔗 모듈 등록 메서드
@@ -43,6 +44,9 @@ class ServiceManager:
     def set_drive_router_node(self, handler):
         self.drive_router_node = handler
 
+    def set_admin_gui_topic(self, handler):
+        self.admin_gui_topic = handler
+
     def set_location(self, vehicle_id, x, y):
         taxi = self.taxis.get(vehicle_id)
         if taxi:
@@ -50,6 +54,8 @@ class ServiceManager:
             print(f"🚖 택시 {vehicle_id} 위치 업데이트됨: ({x}, {y})")
         else:
             print(f"🚫 존재하지 않는 택시 ID: {vehicle_id}")
+
+
 
     # 🧠 택시 객체 참조 메서드
     def get_taxi(self, vehicle_id):

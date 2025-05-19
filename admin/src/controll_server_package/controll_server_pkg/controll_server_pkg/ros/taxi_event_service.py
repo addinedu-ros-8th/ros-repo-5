@@ -152,6 +152,22 @@ class TaxiEventServiceNode(Node):
                 self.get_logger().warn(f"🚫 택시 {vehicle_id}의 승객 상태가 '승차'가 아님: {taxi.passenger_state}")
                 return f"taxi.passenger_state={taxi.passenger_state} (expected '승차')"
 
+        # 🟡 문 닫힘 처리 (하차 상태 확인)
+        elif event_type == 11 and taxi.state == "landing":
+            if taxi.passenger_state == "하차":
+                self.send_to_pi(vehicle_id, event_type)
+                reasult = self.manager.drive_router_node(vehicle_id, 13, taxi.start_node)
+                if reasult == "ok":
+                    if taxi.battery < 60:
+                        taxi.state = "charging"
+                    else:
+                        taxi.state = "ready"
+                    self.send_to_pi(vehicle_id, 9)
+                return "ok"
+            else:
+                self.get_logger().warn(f"🚫 택시 {vehicle_id}의 승객 상태가 '승차'가 아님: {taxi.passenger_state}")
+                return f"taxi.passenger_state={taxi.passenger_state} (expected '승차')"
+
         # 🔵 출발지 도착 → 운행 시작 준비
         elif event_type == 14 and taxi.state == "drive_start":
             taxi.state = "boarding"

@@ -115,7 +115,7 @@ class DriveRouterNode(Node):
         self.current_index = 0
 
         qos_profile = QoSProfile(depth=10, reliability=QoSReliabilityPolicy.RELIABLE)
-        self.subscriber = self.create_subscription(CommandInfo, 'drive', self.yolo_callback, qos_profile)
+        self.subscriber = self.create_subscription(CommandInfo, '/drive', self.yolo_callback, qos_profile)
         self.cmd_vel_pub_pinky1 = self.create_publisher(Twist, '/taxi1/cmd_vel', qos_profile)
         self.cmd_vel_pub_pinky2 = self.create_publisher(Twist, '/taxi2/cmd_vel', qos_profile)
 
@@ -235,25 +235,25 @@ class DriveRouterNode(Node):
         else:
             # 네비게이션 행동에 따라 PID 제어 적용
             if behavior == 0:  # 전진
-                twist.linear.x = self.linear_x
+                twist.linear.x = float(self.linear_x)
                 # PID로 오프셋 기반 각속도 계산 (목표: 오프셋 = 0)
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = angular_z
+                twist.angular.z = float(angular_z)
                 self.send_command(self.vehicle_id, 9)
 
             elif behavior == 1:  # 좌회전
-                twist.linear.x = self.linear_x
+                twist.linear.x = float(self.linear_x)
                 # PID로 좌회전 제어, 최소 회전 속도 보장
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = min(angular_z, 0.5)
+                twist.angular.z = float(min(angular_z, 0.5))
                 self.send_command(self.vehicle_id, 9)
                 self.send_command(self.vehicle_id, 6)
 
             elif behavior == 2:  # 우회전
-                twist.linear.x = self.linear_x
+                twist.linear.x = float(self.linear_x)
                 # PID로 우회전 제어, 최소 회전 속도 보장
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = min(angular_z, -0.5)
+                twist.angular.z = float(min(angular_z, -0.5))
                 self.send_command(self.vehicle_id, 9)
                 self.send_command(self.vehicle_id, 7)
 
@@ -274,6 +274,8 @@ class DriveRouterNode(Node):
         self.vehicle_id = msg.vehicle_id
         self.offset = msg.offset
         self.linear_x = msg.linear_x
+
+        self.get_logger().info(f"📥 yolo_callback 수신된 메시지: {msg.vehicle_id, msg.offset, msg.linear_x}")
         
 
     def destroy_node(self):

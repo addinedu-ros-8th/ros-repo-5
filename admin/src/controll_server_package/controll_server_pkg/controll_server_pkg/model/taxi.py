@@ -1,7 +1,7 @@
 # self.state = ready dispatch drive_start boarded drive_destination landing completed charged
 
 class Taxi:
-    def __init__(self, vehicle_id, max_passengers):
+    def __init__(self, vehicle_id, max_passengers, station_node):
         self.vehicle_id = vehicle_id
         self.state = "ready"
         self.location = (0.0, 0.0)
@@ -14,7 +14,8 @@ class Taxi:
         self.passenger_id = None
         self.max_passengers = max_passengers
         self.dispatches_id = None
-        self.passenger_state = None
+        self.passenger_state = None        
+        self.station_node = station_node
 
     def dispatch(self, start_x, start_y, start_node, dest_x, dest_y, destination_node, passenger_count, passenger_id, dispatches_id):
         self.start = (start_x, start_y)

@@ -1,29 +1,26 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.5)
 project(controll_server_package_msgs)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
-
-# find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
-# message/service generation
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/CmdMoveTo.srv"
-  "srv/TaxiEvent.srv"
-  DEPENDENCIES builtin_interfaces
+# 메시지 및 서비스 파일 설정
+set(msg_files
+  "msg/TaxiState.msg"
 )
 
-ament_export_dependencies(rosidl_default_runtime)
+set(srv_files
+  "srv/CmdMoveTo.srv"
+  "srv/TaxiEvent.srv"
+)
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  set(ament_cmake_cpplint_FOUND TRUE)
-  set(ament_cmake_copyright_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
+# 메시지 생성 설정
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  ${srv_files}
+  DEPENDENCIES std_msgs builtin_interfaces
+)
 
 ament_package()
