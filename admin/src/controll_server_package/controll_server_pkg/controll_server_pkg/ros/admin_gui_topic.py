@@ -24,7 +24,7 @@ class AdminGuiTopicPublisher(Node):
             msg.passenger_count = taxi.passenger_count
 
             self.publisher_.publish(msg)
-            self.get_logger().info(f"📤 TaxiState 발행: {msg}")
+            # self.get_logger().info(f"📤 TaxiState 발행: {msg}")
 
     def handle_message(self, message):
         print(f"[AdminGuiTopic] 수신된 메시지: {message}")
