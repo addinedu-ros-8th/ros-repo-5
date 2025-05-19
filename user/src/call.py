@@ -1,35 +1,41 @@
 import os
+import sys
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel
-from PyQt6.QtCore import Qt, QTimer, QPointF
+from PyQt6.QtCore import Qt, QTimer, QPointF, QLoggingCategory
 from PyQt6.QtGui import *
 from PyQt6 import uic
-from ui_utils import *
+from charge import *
+from Icon_coordinates import ICON_COORDINATES
+from IconHandler import * 
+from Restapi import * 
+from Pinkymanager import * 
 from riding import *
+from LeftMoney import LeftMoneyManager
+from LeftMoney import * 
+
+# stderr (경고 메시지) 출력 차단
+sys.stderr = open(os.devnull, 'w')
+# 모든 Qt 경고 메시지 차단
+QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
+
 
 class CallWindow(QMainWindow):
     def __init__(self, start_icon_name, destination_icon_name):
         super().__init__()
         uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/1_call.ui"), self)
-        self.Pinky.setVisible(False)
         
-        # Pinky 이미지 초기 설정
-        self.pinky_image = QLabel(self)
-        self.pinky_image.setPixmap(QPixmap("/mnt/data/transparent_pinky.png"))
-        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
-        self.pinky_image.setScaledContents(True)
-        self.pinky_image.setVisible(True)
-
-        # Pinky의 초기 위치
-        self.pinky_x = 0
-        self.pinky_y = 0
-        self.destination_x = 300  # 예제 목적지 x 좌표 (실제로는 서버에서 받아온 좌표)
-        self.destination_y = 200  # 예제 목적지 y 좌표
+        # REST API 클라이언트 생성
+        self.api_manager = RestAPIManager()
+        self.start_location = None
+        self.end_location = None
         
-        # 실시간 위치 업데이트 타이머 (500ms 간격)
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_pinky_position)
-        self.timer.start(500)
+        self.ChargeBtn.clicked.connect(self.show_charge_page)
 
+        # LineEditHandler 설정
+        self.line_edit_handler = LineEditHandler(self)
+        self.location_names = LocationManager.get_location_names()
+        self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
+        
         # 아이콘 핸들러 설정
         self.icon_handler = IconHandler(self, {
             "Icon1": "Info1",
@@ -39,48 +45,86 @@ class CallWindow(QMainWindow):
             "Icon5": "Info5",
             "Icon6": "Info6"
         })
-
-        # LineEditHandler 설정
-        self.line_edit_handler = LineEditHandler(self)
-        self.location_names = LocationManager.get_location_names()
+        
         self.start_location = self.start  # QLineEdit (출발지)
         self.destination_location = self.destination  # QLineEdit (목적지)
+        
+        # 출발지/목적지 아이콘 유지
+        self.start_location = self.start  # QLineEdit (출발지)
+        self.destination_location = self.destination
+        self.icon_handler.set_fixed_icons(start_icon_name, destination_icon_name)
+        
+        # 출발지/목적지 이름을 상태로 저장
+        self.start_icon = start_icon_name
+        self.destination_icon = destination_icon_name
+        self.set_location_text(self.start_icon, self.destination_icon)
+
+
+        # PinkyManager 설정
+        self.pinky_manager = PinkyManager()
+        self.pinky_manager.position_updated.connect(self.update_pinky_position)
+        self.pinky_manager.start_reached.connect(self.switch_to_riding_window)
+         
+        # Map 위젯 위에 Pinky 설정
+        self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
+        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+        
+        # QPixmap 투명 배경 유지 (Alpha 채널 유지)
+        self.pinky_image.setPixmap(pinky_pixmap)
+        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
+        self.pinky_image.setScaledContents(True)
+        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
+        
+        # Pinky 이미지를 항상 맨 앞에 위치 (Map 바로 위)
+        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)  # 마우스 이벤트 무시
+        self.pinky_image.raise_()  # 맨 앞에 위치
+
+        # 디버그 버튼 설정
+        self.Debug.clicked.connect(self.debug_button_clicked)
+
+        # 디버그 클릭 횟수
+        self.debug_click_count = 0
 
 
         # 출발지/목적지 아이콘 유지
         self.start_location = self.start  # QLineEdit (출발지)
         self.destination_location = self.destination
         self.icon_handler.set_fixed_icons(start_icon_name, destination_icon_name)
-        print(f"[DEBUG] 출발지: {start_icon_name}, 목적지: {destination_icon_name}")
 
-        # 전달된 출발지/목적지 이름 설정
-        self.set_location_text(start_icon_name, destination_icon_name)
+    def show_charge_page(self):
+        from charge import ChargeWindow
+        self.charge_window = ChargeWindow(
+            previous_window=self,
+            start_icon=self.start_icon,
+            destination_icon=self.destination_icon
+        )
+        self.charge_window.show()
+        self.hide()
+
+    def restore_state(self, start_icon, destination_icon):
+        self.start_icon = start_icon
+        self.destination_icon = destination_icon
+        # 여기서 LineEdit에 출발지/목적지 표시 갱신
+        self.set_location_text(start_icon, destination_icon)
+        self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
 
     #----------------------------------------------------------------
     # 디버깅용 
     # ----------------------------------------------------------------
-        
-        # 디버그 버튼 설정
-        self.debug_button = QPushButton("Debug", self)
-        self.debug_button.setGeometry(300, 500, 80, 40)
-        self.debug_button.clicked.connect(self.debug_button_clicked)
-
-        # 디버그 클릭 횟수
-        self.debug_click_count = 0
     
     
     def debug_button_clicked(self):
         self.debug_click_count += 1
-        print(f"[DEBUG] Debug 버튼 클릭: {self.debug_click_count}")
 
         if self.debug_click_count == 2:
-            print("[DEBUG] Debug 2회 클릭 - Riding 페이지로 이동")
-                        
+            
+            start_icon_name = self.icon_handler.start_icon.objectName() if self.icon_handler.start_icon else "Unknown"
+            destination_icon_name = self.icon_handler.destination_icon.objectName() if self.icon_handler.destination_icon else "Unknown"
             # call.py 페이지로 이동 -> 디버깅용 코드
             from riding import RidingWindow
             self.riding_window = RidingWindow(
-                start_icon=self.start_icon,
-                destination_icon=self.destination_icon
+                start_icon_name=start_icon_name,
+                destination_icon_name=destination_icon_name
             )
             self.riding_window.show()
             self.close()
@@ -92,16 +136,20 @@ class CallWindow(QMainWindow):
         self.riding_window.show()
         self.close()
 
-    #---------------------------------------------------------------
+    #---------------------------------------------------------------------------
+    def update_pinky_position(self, x, y):
+        self.pinky_image.move(int(x), int(y))
 
-
-
-    def get_ui_path(self, ui_file):
-  
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(base_dir, "ui", ui_file)
-    
-
+    def switch_to_riding_window(self):
+        start_icon_name = self.icon_handler.start_icon.objectName() if self.icon_handler.start_icon else "Unknown"
+        destination_icon_name = self.icon_handler.destination_icon.objectName() if self.icon_handler.destination_icon else "Unknown"
+        from riding import RidingWindow
+        self.riding_window = RidingWindow(
+            start_icon_name=start_icon_name,
+            destination_icon_name=destination_icon_name
+        )
+        self.riding_window.show()
+        self.close()
 
     def set_location_text(self, start_icon_name, destination_icon_name):
         location_names = LocationManager.get_location_names()
@@ -109,60 +157,12 @@ class CallWindow(QMainWindow):
         # 출발지 LineEdit 업데이트
         start_name = self.location_names.get(start_icon_name, "출발지 선택")
         self.line_edit_handler.update_line_edit("start", start_name)
-        print(f"[DEBUG] 출발지 설정: {start_name}")
 
         # 목적지 LineEdit 업데이트
         destination_name = self.location_names.get(destination_icon_name, "목적지 선택")
         self.line_edit_handler.update_line_edit("destination", destination_name)
-        print(f"[DEBUG] 목적지 설정: {destination_name}")
 
-    def update_pinky_position(self):
-        """
-        서버에서 Pinky의 위치 좌표 받아와 이미지 이동
-        """
-        # 서버에서 Pinky 위치 수신 (임시 예제 좌표, 실제로는 서버에서 받아옴)
-        response = self.get_pinky_position_from_server()
-        if response:
-            self.pinky_x, self.pinky_y = response
-            print(f"[DEBUG] Pinky 위치: ({self.pinky_x}, {self.pinky_y})")
+    def get_ui_path(self, ui_file):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(base_dir, "ui", ui_file)
 
-            # Pinky 이미지 위치 업데이트
-            self.pinky_image.move(self.pinky_x, self.pinky_y)
-
-            # 도착 확인
-            if self.is_pinky_at_destination():
-                self.timer.stop()
-                self.transition_to_next_page()
-
-    def get_pinky_position_from_server(self):
-        """
-        서버에서 Pinky 좌표 받아오기 (임시 예제)
-        """
-        # 서버에서 좌표 받아오는 코드 (임시, 실제 서버 URL 사용)
-        # response = requests.get("http://localhost:8000/get_pinky_position")
-        # if response.status_code == 200:
-        #     return response.json()["x"], response.json()["y"]
-        # return None
-
-        # 임시로 좌표를 시뮬레이션 (테스트용)
-        self.pinky_x += 10
-        self.pinky_y += 5
-        return self.pinky_x, self.pinky_y
-
-    def is_pinky_at_destination(self):
-        """
-        Pinky가 목적지에 도착했는지 확인 (오차 범위: 10px)
-        """
-        distance_x = abs(self.pinky_x - self.destination_x)
-        distance_y = abs(self.pinky_y - self.destination_y)
-
-        return distance_x <= 10 and distance_y <= 10
-
-    def transition_to_next_page(self):
-        """
-        목적지 도착 시 다음 페이지로 자동 전환
-        """
-        print("[INFO] Pinky가 목적지에 도착했습니다. 승차 페이지로 이동합니다.")
-        from riding import RidingWindow  # 승차 페이지 (예제)
-        self.riding_window = RidingWindow()
-        self.riding_window.show()
