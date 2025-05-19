@@ -138,7 +138,6 @@ class DriveRouterNode(Node):
         self.marker_length = 0.03  # 3cm
         self.last_behavior = ""
 
-        self.get_logger().info("goal_node:" + self.goal_node)
         self.get_logger().info("Drive Router Node Started")
 
     def heuristic(self, n1, n2):
@@ -219,6 +218,9 @@ class DriveRouterNode(Node):
     
 
     def timer_callback(self):
+        if self.goal_node is None:
+            return
+        
         ret, frame = self.video.read()
         if not ret:
             return
