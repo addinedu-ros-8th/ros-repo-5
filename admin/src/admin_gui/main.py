@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphics
 from PyQt6.QtGui import QPixmap, QColor
 from PyQt6 import uic
 
-from qt_material import apply_stylesheet
+from qt_material import apply_stylesheet 
 
 
 class AdminMainWindow(QMainWindow):
@@ -39,14 +39,7 @@ class AdminMainWindow(QMainWindow):
         self.scene = QGraphicsScene()
         self.graphicsView_map.setScene(self.scene)
 
-        # 지도 배경 이미지 삽입 (map.png는 실행 위치에 있어야 함)
-        bg_pixmap = QPixmap("/home/vit/dev_ws/project/ros-repo-5/admin/src/admin_gui/data/map/map.png")
-        if not bg_pixmap.isNull():
-            self.bg_item = QGraphicsPixmapItem(bg_pixmap)
-            self.scene.addItem(self.bg_item)
-        else:
-            print("⚠️ map.png 이미지가 존재하지 않거나 경로가 잘못되었습니다.")
-
+        
         # 택시 아이콘 추가 (pinky1)
         self.taxi_item = QGraphicsEllipseItem(0, 0, 20, 20)
         self.taxi_item.setBrush(QColor("magenta"))
