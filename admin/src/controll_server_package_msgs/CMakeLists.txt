@@ -17,13 +17,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES builtin_interfaces
 )
 
-# Optional: if you have include headers
-include_directories(include)
-
-install(DIRECTORY include/
-  DESTINATION include/
-)
-
 ament_export_dependencies(rosidl_default_runtime)
 
 if(BUILD_TESTING)

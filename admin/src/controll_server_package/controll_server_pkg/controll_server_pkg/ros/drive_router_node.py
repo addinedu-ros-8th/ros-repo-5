@@ -9,12 +9,16 @@ import networkx as nx
 import cv2
 import numpy as np
 from signal_processor import SignalProcessor
+from controll_server_pkg.common.manager import ServiceManager
+from controll_server_package_msgs.srv import TaxiEvent
 
 class DriveRouterNode(Node):
-    def __init__(self, manager):
+    def __init__(self, manager: ServiceManager):
         super().__init__('drive_router_node')
-        self.declare_parameter('goal_node', 'R')
-        self.goal_node = self.get_parameter('goal_node').get_parameter_value().string_value
+        self.manager = manager
+        self.manager.set_drive_router_node(self.handle_message)
+
+        self.goal_node = None
 
         # Declare ROS2 parameters (PID parameters and tolerance)
         self.declare_parameter('P', 1.0)
@@ -118,10 +122,7 @@ class DriveRouterNode(Node):
 
         self.vehicle_id = None
         self.offset = 0
-        self.radius = 0
         self.linear_x = 0
-        self.angular_z = 0
-        self.manager = manager
         self.arrived = False
 
         self.video = cv2.VideoCapture(2)
@@ -172,6 +173,7 @@ class DriveRouterNode(Node):
         if np.linalg.norm(np.array(robot_pos) - np.array(goal_pos)) < 0.03:
             self.arrived = True
             self.last_behavior = "stop"
+            self.manager.taxi_event_service(self.vehicle_id, 14, "")
             return None
 
         if nearest_index < len(self.path) - 1:
@@ -206,9 +208,10 @@ class DriveRouterNode(Node):
                 pos = tvec[0][0]
                 x, y = pos[0], pos[1]
                 robot_pos = (round(self.sp.moving_average(x), 3), round(self.sp.moving_average(y), 3))
+                self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
 
                 # 최초 경로 설정
-                if self.path is None:
+                if self.path is None or self.goal_node != self.path[-1]:
                     current_node = self.find_nearest_node(robot_pos)
                     self.set_goal_path(current_node, self.goal_node)
 
@@ -239,22 +242,28 @@ class DriveRouterNode(Node):
                 # PID로 오프셋 기반 각속도 계산 (목표: 오프셋 = 0)
                 angular_z = self.pid.update(self.offset)
                 twist.angular.z = angular_z
+                self.send_command(self.vehicle_id, 9)
 
             elif behavior == 1:  # 좌회전
                 twist.linear.x = self.linear_x
                 # PID로 좌회전 제어, 최소 회전 속도 보장
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = min(angular_z, 0.5)   # 최소 좌회전 각속도 0.5
+                twist.angular.z = min(angular_z, 0.5)
+                self.send_command(self.vehicle_id, 9)
+                self.send_command(self.vehicle_id, 6)
 
             elif behavior == 2:  # 우회전
                 twist.linear.x = self.linear_x
                 # PID로 우회전 제어, 최소 회전 속도 보장
                 angular_z = self.pid.update(self.offset)
                 twist.angular.z = min(angular_z, -0.5)
+                self.send_command(self.vehicle_id, 9)
+                self.send_command(self.vehicle_id, 7)
 
             elif behavior == 3:  # 정지
                 twist.linear.x = 0.0
                 twist.angular.z = 0.0
+                self.send_command(self.vehicle_id, 9)
 
         if self.vehicle_id == 1:
             self.cmd_vel_pub_pinky1.publish(twist)
@@ -267,16 +276,60 @@ class DriveRouterNode(Node):
     def yolo_callback(self, msg):
         self.vehicle_id = msg.vehicle_id
         self.offset = msg.offset
-        self.radius = msg.radius
         self.linear_x = msg.linear_x
-        # self.angular_z = msg.angular_z
         
 
     def destroy_node(self):
         self.video.release()
         cv2.destroyAllWindows()
         super().destroy_node()
+    
 
+    def send_command(self, vehicle_id, event_type):
+        client = self.create_client(TaxiEvent, '/set_event_state')
+        if not client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().warn("운행 서비스 연결 실패")
+            return
+
+        req = TaxiEvent.Request()
+        req.vehicle_id = vehicle_id
+        req.event_type = event_type
+        req.data = ""
+
+        self.get_logger().info(f"운행 명령 비동기 전송: 택시 {vehicle_id}")
+
+        future = client.call_async(req)
+
+        def callback(fut):
+            try:
+                res = fut.result()
+                if res.result:
+                    self.get_logger().info(f"전송 성공")
+                else:
+                    self.get_logger().error(f"전송 실패 (응답은 옴)")
+            except Exception as e:
+                self.get_logger().error(f"전송 실패: {e}")
+
+        future.add_done_callback(callback)
+
+
+    def handle_message(self, vehicle_id, event_type, data):
+        self.get_logger().info(f"📥 handle_message 수신된 메시지: {vehicle_id, event_type, data}")
+        
+        taxi = self.manager.get_taxi(vehicle_id)
+        if not taxi:
+            self.get_logger().warn(f"존재하지 않는 택시 ID: {vehicle_id}")
+            return f"Taxi {vehicle_id} not found"
+
+        if event_type == 13:
+            self.vehicle_id = vehicle_id
+            self.goal_node = data
+            self.arrived = False
+            return "ok"
+
+        # 조건에 해당하지 않음
+        self.get_logger().warn(f"처리되지 않은 이벤트: vehicle_id={vehicle_id}, event_type={event_type}")
+        return "ignored"
 
 def main(args=None):
     rclpy.init(args=args)

@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from ai_server_package_msgs.msg import CommandInfo, DriveInfo
+from ai_server_package_msgs.msg import CommandInfo
 from sensor_msgs.msg import LaserScan
 from rclpy.executors import MultiThreadedExecutor
 
@@ -76,7 +76,6 @@ class commandPublisher(Node):
         super().__init__(f"command_publisher{vehicle_receiver.vehicle_id}")
         self.receiver = vehicle_receiver
         self.vehicle_id = vehicle_receiver.vehicle_id
-        self.direction_sub = self.create_subscription(DriveInfo, '/nav_direction', self.direction_callback, 10)
         self.lidar_sub = self.create_subscription(LaserScan, '/scan', self.lidar_callback, 10)
         self.publisher = self.create_publisher(CommandInfo, '/drive', 10)
         
@@ -86,7 +85,6 @@ class commandPublisher(Node):
         self.yolo_seg_model = YOLO("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/runs/segment/yolov8_epoch200/weights/best.pt").to(device)
         self.yolo_detect_model = YOLO("/home/pepsi/Downloads/yolo_detect.pt").to(device)
 
-        self.direction = 0
         self.prev_offset = 0.0
         self.prev_curvature = 0.0
         self.lidar_ranges = None
@@ -118,7 +116,7 @@ class commandPublisher(Node):
         h, w = frame.shape[:2]
         
         if masks is None:
-            return frame, self.prev_offset, self.prev_curvature
+            return frame, self.prev_offset
         
         left_pts, right_pts = None, None
 
@@ -133,39 +131,35 @@ class commandPublisher(Node):
                 right_pts = avg_x
             else:
                 left_pts = avg_x
-
         
+        LANE_WIDTH_PIXELS = 160
+
         if left_pts is not None and right_pts is not None:
             center_x = float((left_pts + right_pts) / 2)
         elif left_pts is not None:
-            center_x = int(left_pts)
+            center_x = float(left_pts + LANE_WIDTH_PIXELS / 2)
         elif right_pts is not None:
-            center_x = int(right_pts)
+            center_x = float(right_pts - LANE_WIDTH_PIXELS / 2)
 
-
-        offset = self.prev_offset  # 기본값: 이전 offset 유지
+        offset = self.prev_offset
         if center_x is not None:
             image_center = w / 2
-            offset = center_x - image_center  # 차선 중심과 이미지 중심의 차이
-            cv2.line(annotated_frame, (int(center_x), 0), (int(center_x), h), (0, 255, 255), 2)  # 차선 중심선
+            offset = center_x - image_center
+            cv2.line(annotated_frame, (int(center_x), 0), (int(center_x), h), (0, 255, 255), 2)
             self.prev_center_x = center_x 
-            self.prev_offset = offset  # offset 저장
-        
-        # Curvature는 아직 구현되지 않음, 0.0으로 유지
-        curvature = 0.0
+            self.prev_offset = offset
 
-
-        return annotated_frame, offset, curvature
+        return annotated_frame, offset
 
     
     def obstacle_avoidance(self, frame):
-        linear_x, angular_z = 0.0, 0.0
+        linear_x = 0.0
         if self.angle_min is None or self.angle_increment is None or self.lidar_ranges is None:
             self.get_logger().warn("LIDAR 정보 수신 전이므로 obstacle_avoidance 스킵")
-            return frame, self.base_speed, 0.0
+            return frame, self.base_speed
         
         stopline_detected = False
-        stopline_y_threshold = frame.shape[0] * 0.7  # 이미지 하단 30% 내 정지선 감지
+        stopline_y_threshold = frame.shape[0] * 0.7
 
         results = self.yolo_detect_model(frame)
         for result in results:
@@ -233,7 +227,8 @@ class commandPublisher(Node):
                         self.stop_flag = True
                         self.get_logger().info(f'Stopping robot: {class_name} with stopline detected')
 
-                elif class_name == 'greenlight':  # 파란불 감지 시 이동
+                # 파란불 감지 시 이동
+                elif class_name == 'greenlight':
                     self.stop_flag = False
                     self.get_logger().info('green light detected')
                 
@@ -245,20 +240,16 @@ class commandPublisher(Node):
                     self.base_speed = 0.5
                     self.get_logger().info('speed limit 60 detected')
 
-
                 else:
                     self.stop_flag = False
                     self.base_speed = 0.5
 
-
         if self.stop_flag:
             linear_x = 0.0
-            angular_z = 0.0
         else:
             linear_x = self.base_speed
-            angular_z = 0.0
 
-        return results[0].plot(), linear_x, angular_z
+        return results[0].plot(), linear_x
 
     
     def timer_callback(self):
@@ -271,7 +262,7 @@ class commandPublisher(Node):
         undistorted = cv2.undistort(frame, camera_matrix, dist_coeff, None, newcameramtx)
 
         # HSV로 변환
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(undistorted, cv2.COLOR_BGR2HSV)
 
         # 밝기 줄이기 (0.0 ~ 1.0 사이 값)
         brightness_factor2 = 0.7                    
@@ -281,26 +272,18 @@ class commandPublisher(Node):
 
         result = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
         
-        detect_frame, linear_x, angular_z = self.obstacle_avoidance(result)
+        detect_frame, linear_x = self.obstacle_avoidance(result)
 
-        annotate_frame, offset, radius = self.lane_keeping(detect_frame)
+        annotate_frame, offset = self.lane_keeping(detect_frame)
 
         msg = CommandInfo()
         msg.vehicle_id = self.vehicle_id
         msg.offset = offset
-        msg.radius = radius
         msg.linear_x = linear_x
-        msg.angular_z = angular_z
         self.publisher.publish(msg)
 
         cv2.imshow('frame', annotate_frame)
         cv2.waitKey(1)
-
-        # self.video_sender.send_frame(annotate_frame)
-
-    def direction_callback(self, msg):
-        self.direction = msg.direction
-
 
     def lidar_callback(self, msg):
         self.lidar_ranges = msg.ranges
