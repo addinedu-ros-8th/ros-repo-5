@@ -24,7 +24,7 @@ class TaxiEventServiceNode(Node):
         # 외부에서 들어오는 서비스 요청 처리 (주로 Raspberry Pi -> 서버)
         self.srv = self.create_service(
             TaxiEvent,
-            'TaxiEvent',
+            'taxi2/TaxiEvent',
             self.receive_from_pi
         )
         self.get_logger().info("🛠️ TaxiEvent 서비스 서버 실행 중")
@@ -96,7 +96,7 @@ class TaxiEventServiceNode(Node):
         택시(vehicle_id)에 지정된 이벤트 명령을 Raspberry Pi(또는 ESP32)로 전송한다.
         비동기 방식으로 전송되며, 응답을 수신하면 로그 출력.
         """
-        client = self.create_client(TaxiEvent, '/set_event_state')
+        client = self.create_client(TaxiEvent, '/taxi2/set_event_state')
 
         # 서비스가 준비될 때까지 대기
         if not client.wait_for_service(timeout_sec=2.0):
