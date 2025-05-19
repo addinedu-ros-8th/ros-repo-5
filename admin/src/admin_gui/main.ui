@@ -163,6 +163,17 @@
       <height>521</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">/* QGraphicsView에 배경 이미지 설정 */
+QGraphicsView#graphicsView_map {
+    background-image: url(/home/lim/Downloads/resized_new_map_image.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    border: none;
+}
+</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="button_log">
     <property name="geometry">
@@ -209,6 +220,26 @@
      </property>
      <property name="textFormat">
       <enum>Qt::AutoText</enum>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>81</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/logo.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
      </property>
     </widget>
    </widget>
