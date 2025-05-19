@@ -143,6 +143,10 @@ class TaxiEventServiceNode(Node):
         if event_type == 11 and taxi.state == "boarding":
             if taxi.passenger_state == "승차":
                 self.send_to_pi(vehicle_id, event_type)
+                reasult = self.manager.drive_router_node(vehicle_id, 13, taxi.start_node)
+                if reasult == "ok":
+                    taxi.state = "drive_start"
+                    self.send_to_pi(vehicle_id, 9)
                 return "ok"
             else:
                 self.get_logger().warn(f"🚫 택시 {vehicle_id}의 승객 상태가 '승차'가 아님: {taxi.passenger_state}")
