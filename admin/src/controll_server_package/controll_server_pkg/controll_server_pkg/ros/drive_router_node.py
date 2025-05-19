@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from geometry_msgs.msg import Twist
-from ai_server_package_msgs.msg import CommandInfo, DriveInfo
+from ai_server_package_msgs.msg import CommandInfo
 from controll_server_pkg.common.PIDController import PID
 import time
 import networkx as nx
@@ -116,9 +116,8 @@ class DriveRouterNode(Node):
 
         qos_profile = QoSProfile(depth=10, reliability=QoSReliabilityPolicy.RELIABLE)
         self.subscriber = self.create_subscription(CommandInfo, 'drive', self.yolo_callback, qos_profile)
-        self.publisher = self.create_publisher(DriveInfo, '/nav_direction', 10)
-        self.cmd_vel_pub_pinky1 = self.create_publisher(Twist, '/cmd_vel', qos_profile)
-        self.cmd_vel_pub_pinky2 = self.create_publisher(Twist, '/cmd_vel', qos_profile)
+        self.cmd_vel_pub_pinky1 = self.create_publisher(Twist, '/taxi1/cmd_vel', qos_profile)
+        self.cmd_vel_pub_pinky2 = self.create_publisher(Twist, '/taxi2/cmd_vel', qos_profile)
 
         self.vehicle_id = None
         self.offset = 0
@@ -183,10 +182,6 @@ class DriveRouterNode(Node):
             direction = self.explicit_directions[(current_node, next_node)]
             self.last_behavior = self.behavior[direction]
             self.get_logger().info(f"[경로추적] {current_node} → {next_node}, 행동: {direction}")
-            
-            msg = DriveInfo()
-            msg.direction = self.behavior[direction]
-            self.publisher.publish(msg)
 
         return self.last_behavior
 
