@@ -54,7 +54,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QGroupBox" name="groupBox_pinky1">
+   <widget class="QGroupBox" name="groupBox_taxi1">
     <property name="geometry">
      <rect>
       <x>970</x>
@@ -64,47 +64,47 @@
      </rect>
     </property>
     <property name="title">
-     <string>pinky1</string>
+     <string>TAXI 1</string>
     </property>
     <layout class="QVBoxLayout" name="layout_pinky1">
      <item>
       <widget class="QLabel" name="label_pinky1_status">
        <property name="text">
-        <string>운행 상태: 대기</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;운행 상태: 대기&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky1_speed">
        <property name="text">
-        <string>속도: 0 cm/s</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;속도: 0 cm/s&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky1_battery">
        <property name="text">
-        <string>배터리: 0%</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;배터리: 0%&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky1_position">
        <property name="text">
-        <string>위치: (0, 0)</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;위치: (0, 0)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky1_log">
        <property name="text">
-        <string>택시 주행 이벤트</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;택시 주행 이벤트&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
     </layout>
    </widget>
-   <widget class="QGroupBox" name="groupBox_pinky2">
+   <widget class="QGroupBox" name="groupBox_taxi2">
     <property name="geometry">
      <rect>
       <x>970</x>
@@ -114,41 +114,41 @@
      </rect>
     </property>
     <property name="title">
-     <string>pinky2</string>
+     <string>TAXI 2</string>
     </property>
     <layout class="QVBoxLayout" name="layout_pinky2">
      <item>
       <widget class="QLabel" name="label_pinky2_status">
        <property name="text">
-        <string>운행 상태: 대기</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;운행 상태: 대기&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky2_speed">
        <property name="text">
-        <string>속도: 0 cm/s</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;속도: 0 cm/s&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky2_battery">
        <property name="text">
-        <string>배터리: 0%</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;배터리: 0%&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky2_position">
        <property name="text">
-        <string>위치: (0, 0)</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;위치: (0, 0)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pinky1_log_2">
        <property name="text">
-        <string>택시 주행 이벤트</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;택시 주행 이벤트&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>

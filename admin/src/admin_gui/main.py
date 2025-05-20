@@ -24,6 +24,18 @@ class AdminMainWindow(QMainWindow):
         super().__init__()
         uic.loadUi("/home/vit/dev_ws/project/ros-repo-5/admin/src/admin_gui/main.ui", self)
 
+        # 상태 코드 → 한글 매핑
+        self.STATE_KOR_MAP = {
+            "ready": "대기 중",
+            "dispatch": "배차 중",
+            "drive_start": "출발지로 이동 중",
+            "boarded": "승객 승차 중",
+            "drive_destination": "목적지 이동 중",
+            "landing": "승객 하차 중",
+            "completed": "운행 및 하차 완료",
+            "charged": "충전 중"
+        }
+
         # 택시 상태 초기화
         self.taxis = {
             1: QGraphicsEllipseItem(0, 0, 20, 20),
@@ -44,17 +56,24 @@ class AdminMainWindow(QMainWindow):
             x, y = msg.location
             self.taxis[vehicle_id].setPos(x, y)
 
-            # UI 라벨 업데이트
+            # 상태 문자열 한글 변환
+            state_kor = self.STATE_KOR_MAP.get(msg.state, msg.state)
+
+            # 공통 스타일 적용
+            def styled(text): return f'<span style="font-size:16pt; font-weight:600;">{text}</span>'
+
             if vehicle_id == 1:
-                self.label_pinky1_status.setText(f"운행 상태: {msg.state}") # self.state = ready dispatch drive_start boarded drive_destination landing completed charged
-                self.label_pinky1_battery.setText(f"배터리: {msg.battery:.0f}%")
-                self.label_pinky1_position.setText(f"위치: ({int(x)}, {int(y)})")
-                self.label_pinky1_log.setText(f"탑승자: {msg.passenger_count}명")
+                self.label_pinky1_status.setText(styled(f"운행 상태: {state_kor}"))
+                self.label_pinky1_battery.setText(styled(f"배터리: {msg.battery:.0f}%"))
+                self.label_pinky1_position.setText(styled(f"위치: ({x:.3f}, {y:.3f})"))
+                self.label_pinky1_log.setText(styled(f"탑승자: {msg.passenger_count}명"))
             elif vehicle_id == 2:
-                self.label_pinky2_status.setText(f"운행 상태: {msg.state}") # self.state = ready dispatch drive_start boarded drive_destination landing completed charged
-                self.label_pinky2_battery.setText(f"배터리: {msg.battery:.0f}%")
-                self.label_pinky2_position.setText(f"위치: ({int(x)}, {int(y)})")
-                self.label_pinky1_log_2.setText(f"탑승자: {msg.passenger_count}명")
+                self.label_pinky2_status.setText(styled(f"운행 상태: {state_kor}"))
+                self.label_pinky2_battery.setText(styled(f"배터리: {msg.battery:.0f}%"))
+                self.label_pinky2_position.setText(styled(f"위치: ({x:.3f}, {y:.3f})"))
+                self.label_pinky1_log_2.setText(styled(f"탑승자: {msg.passenger_count}명"))
+
+
 
     def print_log(self):
         print("LOG 버튼이 눌렸습니다.")
