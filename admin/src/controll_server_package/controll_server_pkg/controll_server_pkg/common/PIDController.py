@@ -11,26 +11,35 @@ class PID:
         self.dt = 0.0
         self.integrated_state = 0.0
         self.pre_time = time.time()
-        
+
     def update(self, state):
-        self.dt = time.time() - self.pre_time
+        current_time = time.time()
+        self.dt = current_time - self.pre_time
 
-        if self.dt == 0.:
-            state_D = 0.
-        else:
-            state_D = (state - self.pre_state) / self.dt
+        if self.dt <= 0.0:
+            self.dt = 1e-6  # 너무 작거나 0일 경우 보정
 
-        state_I = state + self.integrated_state
+        # 미분 항
+        state_D = (state - self.pre_state) / self.dt
 
-        out = self.P*state + self.D*state_D + self.I*state_I * self.dt
+        # 적분 항
+        self.integrated_state += state * self.dt
 
-        if abs(out) > self.max_state:
-            out = self.max_state if out > 0 else -self.max_state
-        elif abs(out) < self.min_state:
-            out = self.min_state if out > 0 else -self.min_state
+        # PID 계산
+        out = self.P * state + self.I * self.integrated_state + self.D * state_D
 
+        # Saturation (출력 제한)
+        if out > self.max_state:
+            out = self.max_state
+        elif out < -self.max_state:
+            out = -self.max_state
+        elif 0 < out < self.min_state:
+            out = self.min_state
+        elif -self.min_state < out < 0:
+            out = -self.min_state
+
+        # 상태 업데이트
         self.pre_state = state
-        self.integrated_state = state_I
-        self.pre_time = time.time()
+        self.pre_time = current_time
 
         return out
