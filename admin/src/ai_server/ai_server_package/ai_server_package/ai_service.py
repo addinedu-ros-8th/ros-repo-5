@@ -90,7 +90,7 @@ class commandPublisher(Node):
         self.lidar_ranges = None
         self.angle_increment = None
         self.angle_min = None
-        self.base_speed = 0.5
+        self.base_speed = 0.1
         self.stop_flag = False
 
         self.video_sender = VideoSender("192.168.0.134", 9999)
@@ -131,15 +131,13 @@ class commandPublisher(Node):
                 right_pts = avg_x
             else:
                 left_pts = avg_x
-        
-        LANE_WIDTH_PIXELS = 160
 
         if left_pts is not None and right_pts is not None:
             center_x = float((left_pts + right_pts) / 2)
         elif left_pts is not None:
-            center_x = float(left_pts + LANE_WIDTH_PIXELS / 2)
+            center_x = float(left_pts + 160)
         elif right_pts is not None:
-            center_x = float(right_pts - LANE_WIDTH_PIXELS / 2)
+            center_x = float(right_pts - 160)
 
         offset = self.prev_offset
         if center_x is not None:
@@ -196,7 +194,7 @@ class commandPublisher(Node):
                  # 횡단보도 감지: 잠깐 정지 후 이동
                 if class_name == 'crosswalk':
                     self.stop_flag = False
-                    self.base_speed = 0.3
+                    self.base_speed = 0.05
                     self.get_logger().info('crosswalk detected')
 
                 # 보행자 또는 핑키: 50m 이내 정지
@@ -234,15 +232,15 @@ class commandPublisher(Node):
                 
                 # 속도 제한 표지판
                 elif class_name == 'speedlimit_30':
-                    self.base_speed = 0.3
+                    self.base_speed = 0.05
                     self.get_logger().info('speed limit 30 detected')
                 elif class_name == 'speedlimit_60':
-                    self.base_speed = 0.5
+                    self.base_speed = 0.1
                     self.get_logger().info('speed limit 60 detected')
 
                 else:
                     self.stop_flag = False
-                    self.base_speed = 0.5
+                    self.base_speed = 0.3
 
         if self.stop_flag:
             linear_x = 0.0
@@ -276,10 +274,12 @@ class commandPublisher(Node):
 
         annotate_frame, offset = self.lane_keeping(detect_frame)
 
+        self.get_logger().info(f"linear_x = {linear_x}, offset = {offset}")
+
         msg = CommandInfo()
         msg.vehicle_id = self.vehicle_id
-        msg.offset = offset
-        msg.linear_x = linear_x
+        msg.offset = float(offset)
+        msg.linear_x = float(linear_x)
         self.publisher.publish(msg)
 
         cv2.imshow('frame', annotate_frame)

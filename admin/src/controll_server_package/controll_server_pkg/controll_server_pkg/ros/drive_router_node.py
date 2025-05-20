@@ -24,8 +24,8 @@ class DriveRouterNode(Node):
         self.declare_parameter('P', 1.0)
         self.declare_parameter('I', 0.0)
         self.declare_parameter('D', 0.0)
-        self.declare_parameter('max_state', 5.0)
-        self.declare_parameter('min_state', -5.0)
+        self.declare_parameter('max_state', 0.5)
+        self.declare_parameter('min_state', -0.5)
         self.declare_parameter('tolerance', 0.01)
         
         # Get initial parameter values for PID and tolerance
@@ -45,36 +45,39 @@ class DriveRouterNode(Node):
 
         self.G = nx.DiGraph()
         self.G.add_edges_from([
-            ('A', 'R'), ('B', 'A'), ('C', 'B'), ('C', 'E'), ('E', 'K'), ('D', 'C'),
-            ('F', 'G'), ('G', 'K'), ('K', 'O'),('O', 'N'), ('N', 'J'),('J', 'F'), ('N', 'Y'), ('Y', 'F'), ('K', 'U'),
-            ('L', 'B'), ('L', 'H'), ('H', 'I'), ('I', 'M'), ('I', 'Z'), ('Z', 'Q'), ('M', 'Q'), ('Q', 'P'), ('P', 'L'),
-            ('R', 'S'), ('S', 'T'), ('S', 'U'), ('T', 'L'), ('U', 'V'), ('V', 'D')
+            ('A', 'J'), ('J', 'R'), ('B', 'A'), ('C', 'B'), ('C', 'E'), ('E', 'K'), ('D', 'C'),
+            ('F', 'G'), ('G', 'K'), ('H', 'I'), ('I', 'Q'),
+            ('N', 'Y'), ('Y', 'F'),('N', 'F'), ('K', 'U'), ('K', 'O'), ('L', 'B'), ('L', 'H'), ('I', 'Z'), ('Z', 'Q'), ('Q', 'P'),
+            ('O', 'N'), ('P', 'L'), ('P', 'L'),
+            ('R', 'S'), ('S', 'T'), ('S', 'U'), ('T', 'L'), ('U', 'V'), ('V', 'M'), ('M', 'D')
         ])
 
+        # 3. 노드 위치 설정 (두 번째 이미지 기준 좌표)
         self.positions = {
-            "A": (192, 170), "B": (621, 88), "C": (1130, 64), "D": (1500, 115), "E": (1150, 159),
+            "A": (192, 170), "B": (621, 88), "C": (1130, 64), "D": (1500, 115), "E": (1150, 159), "J": (115, 528),
             "F": (282, 244), "G": (631, 216), "H": (1138, 274), "I": (1387, 328),
-            "J": (252, 472), "K": (780, 502), "L": (904, 515), "M": (1466, 560), "Y": (450, 483), "Z": (1196, 552),
+            "K": (780, 502), "L": (904, 515), "M": (1466, 560), "Y": (450, 483), "Z": (1196, 552),
             "N": (267, 694), "O": (598, 734), "P": (1114, 817), "Q": (1448, 770),
-            "R": (210, 944), "S": (555, 984), "T": (575, 857), "U": (1156, 941), "V": (1512, 904),
+            "R": (210, 944), "S": (555, 984), "T": (575, 857), "U": (1156, 941), "V": (1512, 904), "M": (1576, 484),
         }
 
         self.marker_positions = {
-            "A": (0.213, 0.112), "B": (0.225, 0.178), "C": (0.209, 0.223), "D": (0.17, 0.225), "E": (0.166, 0.182),
+            "A": (0.213, 0.112), "B": (0.225, 0.178), "C": (0.209, 0.223), "D": (0.17, 0.225), "E": (0.166, 0.182), "J": (0.125, 0.033),
             "F": (0.172, 0.094), "G": (0.179, 0.137), "H": (0.134, 0.149), "I": (0.104, 0.156),
-            "J": (0.095, 0.025), "K": (0.77, 0.065), "L": (0.068, 0.071), "M": (0.027, 0.094), "Y": (0.1, 0.052), "Z": (0.051, 0.096),
+            "K": (0.77, 0.065), "L": (0.068, 0.071), "M": (0.027, 0.094), "Y": (0.1, 0.052), "Z": (0.051, 0.096),
             "N": (0.043, -0.021), "O": (0.01, -0.011), "P": (-0.031, 0.005), "Q": (-0.032, 0.036),
-            "R": (-0.026, -0.089), "S": (-0.063, -0.075), "T": (-0.027, -0.045), "U": (-0.068, -0.022), "V": (-0.069, 0.015),
+            "R": (-0.026, -0.089), "S": (-0.063, -0.075), "T": (-0.027, -0.045), "U": (-0.068, -0.022), "V": (-0.069, 0.015), "M": (0.043, 0.12)
         }
 
         self.explicit_directions = {
             # 좌측 루프
-            ('A', 'R'): 'forward',
-            ('R', 'S'): 'left',
+            ('A', 'J'): 'left',
+            ('J', 'R'): 'left',
+            ('R', 'S'): 'forward',
             ('S', 'T'): 'left',
             ('T', 'L'): 'left',
             ('L', 'B'): 'left',
-            ('B', 'A'): 'left',
+            ('B', 'A'): 'forward',
 
             # 우측 루프
             ('C', 'B'): 'forward',
@@ -84,8 +87,7 @@ class DriveRouterNode(Node):
             ('K', 'U'): 'left',
             ('O', 'N'): 'right',
             ('N', 'Y'): 'right',
-            ('N', 'J'): 'forward',
-            ('J', 'F'): 'right',
+            ('N', 'F'): 'right',
             ('Y', 'F'): 'right',
             ('F', 'G'): 'forward',
             ('G', 'K'): 'right',
@@ -94,19 +96,19 @@ class DriveRouterNode(Node):
             ('P', 'L'): 'right',
             ('Q', 'P'): 'forward',
             ('Z', 'Q'): 'right',
-            ('M', 'Q'): 'right',
             ('I', 'Z'): 'right',
-            ('I', 'M'): 'right',
+            ('I', 'Q'): 'right',
             ('H', 'I'): 'forward',
             ('L', 'H'): 'right',
 
             # 오른쪽 진입 경로
-            ('V', 'D'): 'forward',
+            ('V', 'M'): 'left',
+            ('M', 'D'): 'left',
             ('U', 'V'): 'forward',
             ('S', 'U'): 'forward',
 
             # 중앙
-            ('D', 'C'): 'left',
+            ('D', 'C'): 'forward',
         }
 
         self.sp = SignalProcessor(window_size=5, alpha=0.3)
@@ -115,7 +117,7 @@ class DriveRouterNode(Node):
         self.current_index = 0
 
         qos_profile = QoSProfile(depth=10, reliability=QoSReliabilityPolicy.RELIABLE)
-        self.subscriber = self.create_subscription(CommandInfo, '/drive', self.yolo_callback, qos_profile)
+        self.subscriber = self.create_subscription(CommandInfo, 'drive', self.yolo_callback, qos_profile)
         self.cmd_vel_pub_pinky1 = self.create_publisher(Twist, '/taxi1/cmd_vel', qos_profile)
         self.cmd_vel_pub_pinky2 = self.create_publisher(Twist, '/taxi2/cmd_vel', qos_profile)
 
@@ -124,7 +126,7 @@ class DriveRouterNode(Node):
         self.linear_x = 0
         self.arrived = False
 
-        self.video = cv2.VideoCapture(2)
+        self.video = cv2.VideoCapture(0)
         time.sleep(2.0)
         self.timer = self.create_timer(0.1, self.timer_callback)
 
@@ -191,11 +193,6 @@ class DriveRouterNode(Node):
         detector = cv2.aruco.ArucoDetector(aruco_dict, cv2.aruco.DetectorParameters())
         corners, ids, _ = detector.detectMarkers(gray)
 
-        if self.goal_node not in self.marker_positions:
-            self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
-            self.arrived = True
-            return self.behavior["stop"]
-
         if ids is not None and len(corners) > 0:
             for i in range(len(ids)):
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
@@ -203,6 +200,15 @@ class DriveRouterNode(Node):
                 x, y = pos[0], pos[1]
                 robot_pos = (round(self.sp.moving_average(x), 3), round(self.sp.moving_average(y), 3))
                 self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
+
+                if self.goal_node is None:
+                    self.get_logger().info("대기중")
+                    return   
+
+                if self.goal_node not in self.marker_positions:
+                    self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
+                    self.arrived = True
+                    return self.behavior["stop"]
 
                 # 최초 경로 설정
                 if self.path is None or self.goal_node != self.path[-1]:
@@ -217,10 +223,7 @@ class DriveRouterNode(Node):
         return self.last_behavior
     
 
-    def timer_callback(self):
-        if self.goal_node is None:
-            return
-        
+    def timer_callback(self):     
         ret, frame = self.video.read()
         if not ret:
             return
@@ -235,25 +238,25 @@ class DriveRouterNode(Node):
         else:
             # 네비게이션 행동에 따라 PID 제어 적용
             if behavior == 0:  # 전진
-                twist.linear.x = float(self.linear_x)
+                twist.linear.x = self.linear_x
                 # PID로 오프셋 기반 각속도 계산 (목표: 오프셋 = 0)
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = float(angular_z)
+                twist.angular.z = angular_z
                 self.send_command(self.vehicle_id, 9)
 
             elif behavior == 1:  # 좌회전
-                twist.linear.x = float(self.linear_x)
+                twist.linear.x = 0.2
                 # PID로 좌회전 제어, 최소 회전 속도 보장
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = float(min(angular_z, 0.5))
+                twist.angular.z = angular_z
                 self.send_command(self.vehicle_id, 9)
                 self.send_command(self.vehicle_id, 6)
 
             elif behavior == 2:  # 우회전
-                twist.linear.x = float(self.linear_x)
+                twist.linear.x = 0.2
                 # PID로 우회전 제어, 최소 회전 속도 보장
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = float(min(angular_z, -0.5))
+                twist.angular.z = angular_z
                 self.send_command(self.vehicle_id, 9)
                 self.send_command(self.vehicle_id, 7)
 
@@ -274,8 +277,7 @@ class DriveRouterNode(Node):
         self.vehicle_id = msg.vehicle_id
         self.offset = msg.offset
         self.linear_x = msg.linear_x
-
-        self.get_logger().info(f"📥 yolo_callback 수신된 메시지: {msg.vehicle_id, msg.offset, msg.linear_x}")
+        self.get_logger().info(f"yolo_callback -> linear_x: {msg.linear_x}, offset: {msg.offset}")
         
 
     def destroy_node(self):

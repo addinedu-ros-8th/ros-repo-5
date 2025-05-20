@@ -11,7 +11,7 @@ class TaxiStateNode(Node):
 
         # 🚕 두 대 택시에 대해 구독 생성
         self.create_subscription(Float32, '/taxi2/pinky_battery_present', lambda msg: self.update_battery(2, msg), 10)
-        # self.create_subscription(Float32, '/pinky2_battery', lambda msg: self.update_battery(2, msg), 10)
+        self.create_subscription(Float32, '/taxi1/pinky_battery_present', lambda msg: self.update_battery(1, msg), 10)
 
         self.get_logger().info("📡 Taxi 상태 구독 노드 시작됨 (2대 대응)")
 
