@@ -20,28 +20,7 @@ class DriveRouterNode(Node):
 
         self.goal_node = None
 
-        # Declare ROS2 parameters (PID parameters and tolerance)
-        self.declare_parameter('P', 5.0)
-        self.declare_parameter('I', 2.0)
-        self.declare_parameter('D', 2.5)
-        self.declare_parameter('max_state', 0.5)
-        self.declare_parameter('min_state', -0.5)
-        self.declare_parameter('tolerance', 0.01)
-        
-        # Get initial parameter values for PID and tolerance
-        P = self.get_parameter('P').value
-        I = self.get_parameter('I').value
-        D = self.get_parameter('D').value
-        max_state = self.get_parameter('max_state').value
-        min_state = self.get_parameter('min_state').value
-
-        # Create PID instance and assign parameters
-        self.pid = PID()
-        self.pid.P = P
-        self.pid.I = I
-        self.pid.D = D
-        self.pid.max_state = max_state
-        self.pid.min_state = min_state
+        self.pid = PID(kp=0.005, ki=0.0, kd=0.001)
 
         self.G = nx.DiGraph()
         self.G.add_edges_from([
@@ -196,7 +175,7 @@ class DriveRouterNode(Node):
                     rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
                     pos = tvec[0][0]
                     x, y = pos[0], pos[1]
-                    robot_pos = (round(self.sp.moving_average(x), 3), round(self.sp.moving_average(y), 3))
+                    robot_pos = (round(self.sp.low_pass_filter(x), 3), round(self.sp.low_pass_filter(y), 3))
                     self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
 
                     if self.goal_node is None:
@@ -238,14 +217,14 @@ class DriveRouterNode(Node):
             if behavior == 0:  # 전진
                 twist.linear.x = self.linear_x
                 # PID로 오프셋 기반 각속도 계산 (목표: 오프셋 = 0)
-                angular_z = self.pid.update(self.offset)
+                angular_z = self.pid.compute(self.offset)
                 twist.angular.z = float(angular_z)
                 self.send_command(self.vehicle_id, 9)
 
             elif behavior == 1:  # 좌회전
                 twist.linear.x = 0.2
                 # PID로 좌회전 제어, 최소 회전 속도 보장
-                angular_z = self.pid.update(self.offset)
+                angular_z = self.pid.compute(self.offset)
                 twist.angular.z = angular_z
                 self.send_command(self.vehicle_id, 9)
                 self.send_command(self.vehicle_id, 6)
@@ -253,7 +232,7 @@ class DriveRouterNode(Node):
             elif behavior == 2:  # 우회전
                 twist.linear.x = 0.2
                 # PID로 우회전 제어, 최소 회전 속도 보장
-                angular_z = self.pid.update(self.offset)
+                angular_z = self.pid.compute(self.offset)
                 twist.angular.z = float(angular_z)
                 self.send_command(self.vehicle_id, 9)
                 self.send_command(self.vehicle_id, 7)
@@ -275,7 +254,6 @@ class DriveRouterNode(Node):
         self.vehicle_id = msg.vehicle_id
         self.offset = msg.offset
         self.linear_x = msg.linear_x
-        self.get_logger().info(f"yolo_callback -> linear_x: {msg.linear_x}, offset: {msg.offset}")
         
 
     def destroy_node(self):

@@ -70,7 +70,6 @@ class VideoSender:
     def close(self):
         self.udp_socket.close()
 
-
 class commandPublisher(Node):
     def __init__(self, vehicle_receiver, port=6000):
         super().__init__(f"command_publisher{vehicle_receiver.vehicle_id}")
@@ -79,7 +78,7 @@ class commandPublisher(Node):
         self.lidar_sub = self.create_subscription(LaserScan, '/scan', self.lidar_callback, 10)
         self.publisher = self.create_publisher(CommandInfo, '/drive', 10)
         
-        timer_period = 0.1
+        timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.timer_callback)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.yolo_seg_model = YOLO("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/runs/segment/yolov8_epoch200/weights/best.pt").to(device)
@@ -104,38 +103,39 @@ class commandPublisher(Node):
         cy = np.mean(y_indices) + roi_top
         return (cx, cy)
 
-    def draw_target_visualization(self, image, w, h, middle, border):
-            target = None
-            if middle and border:
-                target = ((middle[0] + border[0]) / 2, (middle[1] + border[1]) / 2)
-            elif middle:
-                target = (middle[0] + 100, middle[1])
-            elif border:
-                target = (border[0] - 100, border[1])
+    def draw_target_visualization(self, image, w, h, middle, border, dotted):
+        target = None
+        if middle and border:
+            target = ((middle[0] + border[0]) / 2, (middle[1] + border[1]) / 2)
+        elif middle:
+            target = (middle[0] + 100, middle[1])
+        elif border:
+            target = (border[0] - 100, border[1])
+        elif dotted:
+            target = dotted  # 점선 단독일 때 그대로 target
 
-            if middle:
-                cv2.circle(image, (int(middle[0]), int(middle[1])), 5, (0, 255, 255), -1)
-                cv2.putText(image, "middle", (int(middle[0])-20, int(middle[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,255), 2)
-            if border:
-                cv2.circle(image, (int(border[0]), int(border[1])), 5, (255, 255, 255), -1)
-                cv2.putText(image, "border", (int(border[0])-20, int(border[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
-            if target:
-                cv2.circle(image, (int(target[0]), int(target[1])), 5, (255, 150, 200), -1)
-                cv2.putText(image, "target", (int(target[0])-20, int(target[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200,100,150), 2)
-
-                # 방향 화살표
-                robot_pos = (int(w // 2), h - 10)
-                cv2.arrowedLine(image, robot_pos, (int(target[0]), int(target[1])), (255, 100, 200), 2, tipLength=0.2)
-            return image, target
+        if middle:
+            cv2.circle(image, (int(middle[0]), int(middle[1])), 5, (0, 255, 255), -1)
+            cv2.putText(image, "middle", (int(middle[0])-20, int(middle[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,255), 2)
+        if border:
+            cv2.circle(image, (int(border[0]), int(border[1])), 5, (255, 255, 255), -1)
+            cv2.putText(image, "border", (int(border[0])-20, int(border[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
+        if dotted:
+            cv2.circle(image, (int(dotted[0]), int(dotted[1])), 5, (255, 200, 0), -1)
+            cv2.putText(image, "dotted", (int(dotted[0])-20, int(dotted[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,200,0), 2)
+        if target:
+            cv2.circle(image, (int(target[0]), int(target[1])), 5, (255, 150, 200), -1)
+            cv2.putText(image, "target", (int(target[0])-20, int(target[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200,100,150), 2)
+            robot_pos = (int(w // 2), h - 10)
+            cv2.arrowedLine(image, robot_pos, (int(target[0]), int(target[1])), (255, 100, 200), 2, tipLength=0.2)
+        return image, target
 
     def lane_keeping(self, frame):
         h, w = frame.shape[:2]
-        
-        # ROI 설정 (하단 1/3 사용 예시)
         roi_top = int(h * 2 / 3)
-        roi_frame = frame[roi_top:h, 0:w]  # ROI: 아래쪽 1/3 영역
+        roi_frame = frame[roi_top:h, 0:w]
 
-        results = self.yolo_seg_model(roi_frame, conf=0.6)
+        results = self.yolo_seg_model(roi_frame, conf=0.8, verbose=False)
         annotated_frame = frame.copy()
 
         masks = results[0].masks.data.cpu().numpy() if results[0].masks is not None else None 
@@ -149,19 +149,24 @@ class commandPublisher(Node):
 
         middle_centroid = None
         border_centroid = None
+        dotted_centroid = None
 
         for i, cls in enumerate(classes):
             centroid = self.get_centroid_from_mask(roi_top, masks[i])
             if centroid is None:
                 continue
 
-            if cls == 0:  # border
+            if cls == 0:
                 border_centroid = centroid
-            elif cls == 1:  # middle
+            elif cls == 1:
                 middle_centroid = centroid
+            elif cls == 2:
+                dotted_centroid = centroid
 
         # 🔸 시각화 및 offset 계산
-        annotated_frame, target = self.draw_target_visualization(annotated_frame, w, h, middle_centroid, border_centroid)
+        annotated_frame, target = self.draw_target_visualization(
+            annotated_frame, w, h, middle_centroid, border_centroid, dotted_centroid
+        )
 
         if target:
             offset = target[0] - image_center
@@ -178,7 +183,7 @@ class commandPublisher(Node):
         stopline_detected = False
         stopline_y_threshold = frame.shape[0] * 0.7
 
-        results = self.yolo_detect_model(frame)
+        results = self.yolo_detect_model(frame, conf=0.6, verbose=False)
         for result in results:
             boxes = result.boxes
             for box in boxes:
