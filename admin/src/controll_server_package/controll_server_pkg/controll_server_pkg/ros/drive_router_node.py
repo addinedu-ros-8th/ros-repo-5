@@ -20,7 +20,7 @@ class DriveRouterNode(Node):
 
         self.goal_node = None
 
-        self.pid = PID(kp=0.005, ki=0.0, kd=0.001)
+        self.pid = PID(kp=0.008, ki=0.0, kd=0.001)
 
         self.G = nx.DiGraph()
         self.G.add_edges_from([
@@ -102,7 +102,7 @@ class DriveRouterNode(Node):
         self.linear_x = 0
         self.arrived = False
 
-        self.video = cv2.VideoCapture(0)
+        self.video = cv2.VideoCapture(3)
         time.sleep(2.0)
         self.timer = self.create_timer(0.1, self.timer_callback)
 
@@ -149,7 +149,8 @@ class DriveRouterNode(Node):
         if np.linalg.norm(np.array(robot_pos) - np.array(goal_pos)) < 0.03:
             self.arrived = True
             self.last_behavior = "stop"
-            self.manager.taxi_event_service(self.vehicle_id, 14, "")
+            # 택시 도착 이벤트 전송
+            self.manager.taxi_event_service(self.vehicle_id, 14, "destination")
             return None
 
         if nearest_index < len(self.path) - 1:
@@ -171,28 +172,28 @@ class DriveRouterNode(Node):
 
         if ids is not None and len(corners) > 0:
             for i in range(len(ids)):
-                if int(ids[i][0] != self.vehicle_id):
-                    rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
-                    pos = tvec[0][0]
-                    x, y = pos[0], pos[1]
-                    robot_pos = (round(self.sp.low_pass_filter(x), 3), round(self.sp.low_pass_filter(y), 3))
-                    self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
+                # if int(ids[i][0] != self.vehicle_id):
+                rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
+                pos = tvec[0][0]
+                x, y = pos[0], pos[1]
+                robot_pos = (round(self.sp.low_pass_filter(x), 3), round(self.sp.low_pass_filter(y), 3))
+                self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
 
-                    if self.goal_node is None:
-                        self.get_logger().info("대기중")
-                        return   
+                if self.goal_node is None:
+                    self.get_logger().info("대기중")
+                    return   
 
-                    if self.goal_node not in self.marker_positions:
-                        self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
-                        self.arrived = True
-                        return self.behavior["stop"]
+                if self.goal_node not in self.marker_positions:
+                    self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
+                    self.arrived = True
+                    return self.behavior["stop"]
 
-                    # 최초 경로 설정
-                    if self.path is None or self.goal_node != self.path[-1]:
-                        current_node = self.find_nearest_node(robot_pos)
-                        self.set_goal_path(current_node, self.goal_node)
+                # 최초 경로 설정
+                if self.path is None or self.goal_node != self.path[-1]:
+                    current_node = self.find_nearest_node(robot_pos)
+                    self.set_goal_path(current_node, self.goal_node)
 
-                    return self.update_current_node(robot_pos)
+                return self.update_current_node(robot_pos)
         else:
             self.get_logger().warn("마커 인식 실패")
             return self.behavior["stop"]
@@ -208,39 +209,26 @@ class DriveRouterNode(Node):
         behavior = self.pose_estimation(frame)
         self.get_logger().info(f"behavior: {behavior}")
 
+        pid_output = self.pid.compute(self.offset)
+        pid_output = max(min(pid_output, 1.0), -1.0)
+
         twist = Twist()
         if self.arrived:
             twist.linear.x = 0.0
             twist.angular.z = 0.0
         else:
-            # 네비게이션 행동에 따라 PID 제어 적용
-            if behavior == 0:  # 전진
-                twist.linear.x = self.linear_x
-                # PID로 오프셋 기반 각속도 계산 (목표: 오프셋 = 0)
-                angular_z = self.pid.compute(self.offset)
-                twist.angular.z = float(angular_z)
-                self.send_command(self.vehicle_id, 9)
-
-            elif behavior == 1:  # 좌회전
-                twist.linear.x = 0.2
-                # PID로 좌회전 제어, 최소 회전 속도 보장
-                angular_z = self.pid.compute(self.offset)
-                twist.angular.z = angular_z
-                self.send_command(self.vehicle_id, 9)
-                self.send_command(self.vehicle_id, 6)
-
-            elif behavior == 2:  # 우회전
-                twist.linear.x = 0.2
-                # PID로 우회전 제어, 최소 회전 속도 보장
-                angular_z = self.pid.compute(self.offset)
-                twist.angular.z = float(angular_z)
-                self.send_command(self.vehicle_id, 9)
-                self.send_command(self.vehicle_id, 7)
-
-            elif behavior == 3:  # 정지
+            if behavior == 0:
+                twist.linear.x = 0.5
+                twist.angular.z = -pid_output
+            elif behavior == 1:
+                twist.linear.x = 0.3
+                twist.angular.z = max(min(0.8 - pid_output, 1.0), -1.0)
+            elif behavior == 2:
+                twist.linear.x = 0.3
+                twist.angular.z = max(min(-0.8 - pid_output, 1.0), -1.0)
+            elif behavior == 3:
                 twist.linear.x = 0.0
                 twist.angular.z = 0.0
-                self.send_command(self.vehicle_id, 9)
 
         if self.vehicle_id == 1:
             self.cmd_vel_pub_pinky1.publish(twist)
