@@ -21,9 +21,9 @@ class DriveRouterNode(Node):
         self.goal_node = None
 
         # Declare ROS2 parameters (PID parameters and tolerance)
-        self.declare_parameter('P', 1.0)
-        self.declare_parameter('I', 0.0)
-        self.declare_parameter('D', 0.0)
+        self.declare_parameter('P', 5.0)
+        self.declare_parameter('I', 2.0)
+        self.declare_parameter('D', 2.5)
         self.declare_parameter('max_state', 0.5)
         self.declare_parameter('min_state', -0.5)
         self.declare_parameter('tolerance', 0.01)
@@ -195,29 +195,28 @@ class DriveRouterNode(Node):
 
         if ids is not None and len(corners) > 0:
             for i in range(len(ids)):
-                if int(ids[i][0] != self.vehicle_id): continue
+                if int(ids[i][0] != self.vehicle_id):
+                    rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
+                    pos = tvec[0][0]
+                    x, y = pos[0], pos[1]
+                    robot_pos = (round(self.sp.moving_average(x), 3), round(self.sp.moving_average(y), 3))
+                    self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
 
-                rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
-                pos = tvec[0][0]
-                x, y = pos[0], pos[1]
-                robot_pos = (round(self.sp.moving_average(x), 3), round(self.sp.moving_average(y), 3))
-                self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
+                    if self.goal_node is None:
+                        self.get_logger().info("대기중")
+                        return   
 
-                if self.goal_node is None:
-                    self.get_logger().info("대기중")
-                    return   
+                    if self.goal_node not in self.marker_positions:
+                        self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
+                        self.arrived = True
+                        return self.behavior["stop"]
 
-                if self.goal_node not in self.marker_positions:
-                    self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
-                    self.arrived = True
-                    return self.behavior["stop"]
+                    # 최초 경로 설정
+                    if self.path is None or self.goal_node != self.path[-1]:
+                        current_node = self.find_nearest_node(robot_pos)
+                        self.set_goal_path(current_node, self.goal_node)
 
-                # 최초 경로 설정
-                if self.path is None or self.goal_node != self.path[-1]:
-                    current_node = self.find_nearest_node(robot_pos)
-                    self.set_goal_path(current_node, self.goal_node)
-
-                return self.update_current_node(robot_pos)
+                    return self.update_current_node(robot_pos)
         else:
             self.get_logger().warn("마커 인식 실패")
             return self.behavior["stop"]
@@ -243,7 +242,7 @@ class DriveRouterNode(Node):
                 twist.linear.x = self.linear_x
                 # PID로 오프셋 기반 각속도 계산 (목표: 오프셋 = 0)
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = angular_z
+                twist.angular.z = float(angular_z)
                 self.send_command(self.vehicle_id, 9)
 
             elif behavior == 1:  # 좌회전
@@ -258,7 +257,7 @@ class DriveRouterNode(Node):
                 twist.linear.x = 0.2
                 # PID로 우회전 제어, 최소 회전 속도 보장
                 angular_z = self.pid.update(self.offset)
-                twist.angular.z = angular_z
+                twist.angular.z = float(angular_z)
                 self.send_command(self.vehicle_id, 9)
                 self.send_command(self.vehicle_id, 7)
 
