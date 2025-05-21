@@ -57,7 +57,7 @@ def dispatch(taxis: dict, request: dict, call_id: int):
         taxi for taxi in taxis.values()
         if (
             taxi.state == "ready" and
-            taxi.battery >= 60.0 and
+            taxi.battery >= 10.0 and
             taxi.max_passengers >= required_passengers
         )
     ]

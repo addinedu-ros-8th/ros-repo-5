@@ -33,14 +33,6 @@ class SocketServer:
                 conn.close()
                 return
 
-            # ✅ Taxi 조회 (RestServer와 동일한 방식)
-            taxi = self.manager.get_taxi(vehicle_id)
-            if not taxi:
-                print(f"🚫 존재하지 않는 vehicle_id: {vehicle_id}")
-                conn.sendall(json.dumps({"error": f"Taxi {vehicle_id} not found"}) .encode())
-                conn.close()
-                return
-
             # 🔁 주기적으로 Taxi 정보 전송
             while True:
                 conn.settimeout(0.1)
@@ -51,7 +43,16 @@ class SocketServer:
                         break
                 except socket.timeout:
                     pass
+                
+                # ✅ Taxi 조회 (RestServer와 동일한 방식)
+                taxi = self.manager.get_taxi(vehicle_id)
 
+                if not taxi:
+                    print(f"🚫 존재하지 않는 vehicle_id: {vehicle_id}")
+                    conn.sendall(json.dumps({"error": f"Taxi {vehicle_id} not found"}) .encode())
+                    conn.close()
+                    return
+            
                 taxi_data = taxi.to_dict()
                 conn.sendall((json.dumps(taxi_data) + "\n").encode())
                 print(f"[📤 전송됨] {taxi_data}")

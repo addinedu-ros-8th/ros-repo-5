@@ -43,7 +43,7 @@ class TaxiEventServiceNode(Node):
 
         taxi = self.manager.get_taxi(vehicle_id)
         if taxi:
-            if event_type == 12 and taxi.state == "dispatch":
+            if event_type == 12 and taxi.state == "boarding":
                 self.get_logger().info(f"🆔 수신된 RFID UID: {data}")
                 passenger_info = db.execute_select(
                     "SELECT * FROM Passengers WHERE rfid = %s and passenger_id = %s",
@@ -111,7 +111,7 @@ class TaxiEventServiceNode(Node):
                 self.send_to_pi(vehicle_id, event_type)
                 result = self.manager.drive_router_node(vehicle_id, 13, taxi.start_node)
                 if result == "ok":
-                    taxi.state = "drive_start"
+                    taxi.state = "drive"
                     self.send_to_pi(vehicle_id, 9)
                 return "ok"
             else:
@@ -125,17 +125,18 @@ class TaxiEventServiceNode(Node):
                 if result == "ok":
                     taxi.state = "charging" if taxi.battery < 60 else "ready"
                     self.send_to_pi(vehicle_id, 9)
+
                 return "ok"
             else:
                 self.get_logger().warn(f"🚫 하차 상태가 아님: {taxi.passenger_state}")
                 return f"승객 상태={taxi.passenger_state} (expected '하차')"
 
-        elif event_type == 14 and taxi.state == "drive_start":
+        elif event_type == 14 and data == "destination" and taxi.state == "dispatch":
             taxi.state = "boarding"
             self.send_to_pi(vehicle_id, 8)
             return "ok"
 
-        elif event_type == 14 and taxi.state == "drive_destination":
+        elif event_type == 14 and data == "destination" and taxi.state == "drive":
             taxi.state = "landing"
             self.send_to_pi(vehicle_id, 8)
             self.send_to_pi(vehicle_id, 10)

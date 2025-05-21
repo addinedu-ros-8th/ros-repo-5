@@ -302,6 +302,18 @@ class RestServer:
             return jsonify({
                 "status": status
             })
+        
+        @self.app.route('/handle_message', methods=['POST'])
+        def handle_message():
+            vehicle_id = request.json.get('vehicle_id')
+            event_type = request.json.get('event_type')
+            data = request.json.get('data')
+            
+            status = self.manager.taxi_event_service(vehicle_id, event_type, data)
+
+            return jsonify({
+                "status": status
+            })
 
     def run(self):
         print("🚀 REST 서버 실행 시작")

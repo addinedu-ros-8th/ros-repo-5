@@ -1,4 +1,4 @@
-# self.state = ready dispatch drive_start boarded drive_destination landing completed charged
+# self.state = ready dispatch boarded drive landing completed charged
 
 class Taxi:
     def __init__(self, vehicle_id, max_passengers, station_node):
