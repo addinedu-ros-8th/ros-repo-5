@@ -195,6 +195,8 @@ class DriveRouterNode(Node):
 
         if ids is not None and len(corners) > 0:
             for i in range(len(ids)):
+                if int(ids[i][0] != self.vehicle_id): continue
+
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
                 pos = tvec[0][0]
                 x, y = pos[0], pos[1]

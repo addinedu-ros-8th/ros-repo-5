@@ -90,65 +90,84 @@ class commandPublisher(Node):
         self.lidar_ranges = None
         self.angle_increment = None
         self.angle_min = None
-        self.base_speed = 0.1
+        self.base_speed = 0.2
         self.stop_flag = False
 
         self.video_sender = VideoSender("192.168.0.134", 9999)
 
 
-    def calculate_curvature(self, x_vals, y_vals):
-        if len(x_vals) < 3 or len(y_vals) < 3:
+    def get_centroid_from_mask(self, roi_top, mask):
+        y_indices, x_indices = np.where(mask > 0.5)
+        if len(x_indices) == 0:
             return None
-        fit = np.polyfit(y_vals, x_vals, 2)
-        A = fit[0]
-        y_eval = np.max(y_vals)
-        curvature_radius = ((1 + (2*A*y_eval + fit[1])**2)**1.5) / np.abs(2*A)
-        return curvature_radius
+        cx = np.mean(x_indices)
+        cy = np.mean(y_indices) + roi_top
+        return (cx, cy)
+
+    def draw_target_visualization(self, image, w, h, middle, border):
+            target = None
+            if middle and border:
+                target = ((middle[0] + border[0]) / 2, (middle[1] + border[1]) / 2)
+            elif middle:
+                target = (middle[0] + 100, middle[1])
+            elif border:
+                target = (border[0] - 100, border[1])
+
+            if middle:
+                cv2.circle(image, (int(middle[0]), int(middle[1])), 5, (0, 255, 255), -1)
+                cv2.putText(image, "middle", (int(middle[0])-20, int(middle[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,255), 2)
+            if border:
+                cv2.circle(image, (int(border[0]), int(border[1])), 5, (255, 255, 255), -1)
+                cv2.putText(image, "border", (int(border[0])-20, int(border[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
+            if target:
+                cv2.circle(image, (int(target[0]), int(target[1])), 5, (255, 150, 200), -1)
+                cv2.putText(image, "target", (int(target[0])-20, int(target[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200,100,150), 2)
+
+                # 방향 화살표
+                robot_pos = (int(w // 2), h - 10)
+                cv2.arrowedLine(image, robot_pos, (int(target[0]), int(target[1])), (255, 100, 200), 2, tipLength=0.2)
+            return image, target
 
     def lane_keeping(self, frame):
-        results = self.yolo_seg_model(frame, conf=0.6)
+        h, w = frame.shape[:2]
+        
+        # ROI 설정 (하단 1/3 사용 예시)
+        roi_top = int(h * 2 / 3)
+        roi_frame = frame[roi_top:h, 0:w]  # ROI: 아래쪽 1/3 영역
 
-        annotated_frame = results[0].plot()
+        results = self.yolo_seg_model(roi_frame, conf=0.6)
+        annotated_frame = frame.copy()
 
         masks = results[0].masks.data.cpu().numpy() if results[0].masks is not None else None 
         classes = results[0].boxes.cls.cpu().numpy() if results[0].boxes is not None else None 
 
-        h, w = frame.shape[:2]
-        
-        if masks is None:
-            return frame, self.prev_offset
-        
-        left_pts, right_pts = None, None
+        image_center = w / 2
+        offset = self.prev_offset
+
+        if masks is None or classes is None:
+            return annotated_frame, offset
+
+        middle_centroid = None
+        border_centroid = None
 
         for i, cls in enumerate(classes):
-            y_indices, x_indices = np.where(masks[i] > 0.5)
-            if len(x_indices) == 0:
+            centroid = self.get_centroid_from_mask(roi_top, masks[i])
+            if centroid is None:
                 continue
 
-            avg_x = np.mean(x_indices)
+            if cls == 0:  # border
+                border_centroid = centroid
+            elif cls == 1:  # middle
+                middle_centroid = centroid
 
-            if cls == 0:
-                right_pts = avg_x
-            else:
-                left_pts = avg_x
+        # 🔸 시각화 및 offset 계산
+        annotated_frame, target = self.draw_target_visualization(annotated_frame, w, h, middle_centroid, border_centroid)
 
-        if left_pts is not None and right_pts is not None:
-            center_x = float((left_pts + right_pts) / 2)
-        elif left_pts is not None:
-            center_x = float(left_pts + 160)
-        elif right_pts is not None:
-            center_x = float(right_pts - 160)
-
-        offset = self.prev_offset
-        if center_x is not None:
-            image_center = w / 2
-            offset = center_x - image_center
-            cv2.line(annotated_frame, (int(center_x), 0), (int(center_x), h), (0, 255, 255), 2)
-            self.prev_center_x = center_x 
+        if target:
+            offset = target[0] - image_center
             self.prev_offset = offset
 
         return annotated_frame, offset
-
     
     def obstacle_avoidance(self, frame):
         linear_x = 0.0
@@ -191,20 +210,8 @@ class commandPublisher(Node):
                     if distance != float('inf') and distance != float('nan'):
                         self.get_logger().info(f'{class_name} detected at {distance:.2f}m, Angle: {angle:.2f}deg')
 
-                 # 횡단보도 감지: 잠깐 정지 후 이동
-                if class_name == 'crosswalk':
-                    self.stop_flag = False
-                    self.base_speed = 0.05
-                    self.get_logger().info('crosswalk detected')
-
-                # 보행자 또는 핑키: 50m 이내 정지
-                elif class_name in ['pedestrian', 'pinky'] and distance < 20.0:
-                    self.stop_flag = True
-                    self.get_logger().info(f'Stopping robot: {class_name} within 20cm')
-
-
                 # 신호등: 빨간불/노란불 감지
-                elif class_name in ['redlight', 'yellowlight']:
+                if class_name in ['redlight', 'yellowlight']:
                     # 정지선 클래스 확인
                     for inner_box in boxes:
                         inner_cls = int(inner_box.cls[0])
@@ -219,11 +226,26 @@ class commandPublisher(Node):
                                 stopline_detected = True
                                 self.get_logger().info('Stopline detected')
                                 break
+                        else:
+                            stopline_detected = True
+                            self.get_logger().info(f'{class_name} detected')
+                            break
 
                     # 신호등 + 정지선 감지 시 정지
                     if stopline_detected:
                         self.stop_flag = True
                         self.get_logger().info(f'Stopping robot: {class_name} with stopline detected')
+
+                 # 횡단보도 감지: 잠깐 정지 후 이동
+                elif class_name == 'crosswalk':
+                    self.stop_flag = False
+                    self.base_speed = 0.1
+                    self.get_logger().info('crosswalk detected')
+
+                # 보행자 또는 핑키: 50m 이내 정지
+                elif class_name in ['pedestrian', 'pinky'] and distance < 20.0:
+                    self.stop_flag = True
+                    self.get_logger().info(f'Stopping robot: {class_name} within 20cm')
 
                 # 파란불 감지 시 이동
                 elif class_name == 'greenlight':
@@ -232,21 +254,20 @@ class commandPublisher(Node):
                 
                 # 속도 제한 표지판
                 elif class_name == 'speedlimit_30':
-                    self.base_speed = 0.05
+                    self.stop_flag = False
+                    self.base_speed = 0.1
                     self.get_logger().info('speed limit 30 detected')
                 elif class_name == 'speedlimit_60':
-                    self.base_speed = 0.1
+                    self.stop_flag = False
+                    self.base_speed = 0.2
                     self.get_logger().info('speed limit 60 detected')
 
                 else:
                     self.stop_flag = False
-                    self.base_speed = 0.3
+                    self.base_speed = 0.2
 
-        if self.stop_flag:
-            linear_x = 0.0
-        else:
-            linear_x = self.base_speed
-
+        
+        linear_x = 0.0 if self.stop_flag else self.base_speed
         return results[0].plot(), linear_x
 
     
