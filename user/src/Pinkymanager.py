@@ -32,15 +32,12 @@ class PinkyManager(QObject):
     def __init__(self, mapper):
         super().__init__()
 
-        # 직접 생성 방지(반드시 get_instance로만 생성)
-        if PinkyManager._instance is not None:
-            # 이미 만들어졌다면, 여기서 __init__ 중복 실행 막음
-            return
-
         self.mapper = mapper
         self.vehicle_id = UserSession.get_taxi_id()
         if self.vehicle_id is None:
             raise ValueError("[ERROR] UserSession에 taxi_id가 설정되지 않았습니다.")
+        
+        self.socket = None
 
         self.pinky_x = 0
         self.pinky_y = 0
@@ -48,8 +45,8 @@ class PinkyManager(QObject):
         self.state = "unknown"
         self.start_location = [0.0, 0.0]
         self.destination_location = [0.0, 0.0]
+        
 
-        self.socket = None
         self.running = False
         self.host = "192.168.1.3"
         self.port = 9000
@@ -127,15 +124,15 @@ class PinkyManager(QObject):
         except Exception as e:
             print(f"[DEBUG] fallback API 호출 중 오류: {e}")
 
-        # print("[DEBUG] 서버 연결 실패 - 테스트용 가짜 좌표 사용")
-        # dummy_data = {
-        #     "location": [-0.045,  0.021],
-        #     "start": [-0.015, -0.078],
-        #     "destination": [0.08, 0.069],
-        #     "battery": 85.0,
-        #     "state": "dispatch"
-        # }
-        # self.update_pinky(dummy_data)
+        print("[DEBUG] 서버 연결 실패 - 테스트용 가짜 좌표 사용")
+        dummy_data = {
+            "location": [0.200,  0.1200],
+            "start": [-0.015, -0.078],
+            "destination": [0.08, 0.069],
+            "battery": 85.0,
+            "state": "dispatch"
+        }
+        self.update_pinky(dummy_data)
 
     def update_pinky(self, message):
         real_x, real_y = message.get("location", [0.0, 0.0])
@@ -158,4 +155,3 @@ class PinkyManager(QObject):
 
     def is_near(self, x, y, target, threshold=5):
         return abs(x - target[0]) < threshold and abs(y - target[1]) < threshold
-

@@ -25,7 +25,7 @@ class EndWindow(QMainWindow):
         uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/4_end.ui"), self)
         self.ChargeBtn.clicked.connect(self.show_charge_page)
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
-        self.CheckBtn.clicked.connect(self.switch_to_main_window)
+        self.CheckBtn.clicked.connect(self.send_landing_request)
 
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()
@@ -51,7 +51,7 @@ class EndWindow(QMainWindow):
         self.icon_handler.lock_icons()
 
         self.mapper = mapper
-        self.pinky = PinkyManager(mapper=self.mapper) 
+        self.pinky = PinkyManager.get_instance(mapper=self.mapper)
         self.pinky.position_updated.connect(self.update_pinky_position)
         self.setup_pinky_image()
 
@@ -65,7 +65,7 @@ class EndWindow(QMainWindow):
         
         # QPixmap 투명 배경 유지 (Alpha 채널 유지)
         self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 80, 80)  # 초기 크기와 위치 설정
+        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
         self.pinky_image.setScaledContents(True)
         self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
         
@@ -79,10 +79,19 @@ class EndWindow(QMainWindow):
 
 
 
+    def send_landing_request(self):
+        vehicle_id = UserSession.get_taxi_id()
+        response = RestAPIManager().send_post_request("/check_landing", {"vehicle_id": vehicle_id, "event_type": 11, "data": ""})
+        if response and response.get("status") == "ok":
+            self.switch_to_main_window()
+        else:
+            print(self,"[에러]연결불가-디버그")
+            self.switch_to_main_window()
+
+
+
     def switch_to_main_window(self):    
         self.pinky.stop()
-        self.pinky.set_destinations((0, 0), (0, 0))  # 좌표 초기화    
-
         from main import MainWindow
         self.main_window = MainWindow()        
         self.main_window.show()

@@ -41,14 +41,14 @@ class CallWindow(QMainWindow):
         self.mapper = CoordinateMapper(
             img_width=521, 
             img_height=351, 
-            world2pix_pairs={
-                (0.263, 0.161): (34, 42),
-                (0.17, 0.217): (496, 17),
-                (-0.015, -0.078): (16, 325),
-                (-0.045, 0.021): (499, 321),
-                (0.08, 0.069): (236, 164),
-                (0.1, 0.097): (274, 165),
-            },
+            # world2pix_pairs={
+            #     (0.263, 0.161): (34, 42),
+            #     (0.17, 0.217): (496, 17),
+            #     (-0.015, -0.078): (16, 325),
+            #     (-0.045, 0.021): (499, 321),
+            #     (0.08, 0.069): (236, 164),
+            #     (0.1, 0.097): (274, 165),
+            # },
             marker_length=0.1
         )
 
@@ -104,7 +104,7 @@ class CallWindow(QMainWindow):
         
         # QPixmap 투명 배경 유지 (Alpha 채널 유지)
         self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 80, 80)  # 초기 크기와 위치 설정
+        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
         self.pinky_image.setScaledContents(True)
         self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
         

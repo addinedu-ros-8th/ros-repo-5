@@ -29,6 +29,7 @@ class MainWindow(QMainWindow, from_class):
         self.api_manager = RestAPIManager()
         self.start_location = None
         self.end_location = None
+        self.socket = None
 
 
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 

@@ -88,7 +88,7 @@ class DrivingWindow(QMainWindow):
         
         # QPixmap 투명 배경 유지 (Alpha 채널 유지)
         self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 80, 80)  # 초기 크기와 위치 설정
+        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
         self.pinky_image.setScaledContents(True)
         self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
         
