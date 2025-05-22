@@ -20,7 +20,7 @@ QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=fals
 
 
 class RidingWindow(QMainWindow):
-    def __init__(self, start_icon_name, destination_icon_name):
+    def __init__(self, start_icon_name, destination_icon_name,mapper):
         super().__init__()
         uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/2_riding.ui"), self)
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
@@ -48,35 +48,39 @@ class RidingWindow(QMainWindow):
         # 마우스 클릭 차단 (아이콘)
         self.icon_handler.lock_icons()
 
-        # PinkyManager 설정
-        self.pinky_manager = PinkyManager()
-        self.pinky_manager.position_updated.connect(self.update_pinky_position)
+        # 핑키
+        self.mapper = mapper
+        self.pinky = PinkyManager.get_instance(mapper=mapper)
+        self.pinky.position_updated.connect(self.update_pinky_position)
+        self.setup_pinky_image()
 
-        self.pinky_image = QLabel(self.Map)  # Map 위젯에 Pinky 설정
-        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
         
-        # QPixmap 투명 배경 유지 (알파 채널 사용)
-        pinky_pixmap = pinky_pixmap.transformed(QTransform().scale(1, 1), Qt.TransformationMode.SmoothTransformation)
-        self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
-        self.pinky_image.setScaledContents(True)
-        self.pinky_image.setVisible(True)
-        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
         
-        # Pinky 이미지를 맨 앞에 표시 (Z-Index 조정)
-        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)   # 마우스 이벤트 무시
-        self.pinky_image.raise_()  # 맨 앞에 위치
-
-
         # 승차하기 버튼 설정
         self.CheckBtn.clicked.connect(self.send_boarding_request)
         self.ChargeBtn.clicked.connect(self.show_charge_page)
 
         print(f"[RidingWindow] 출발지: {start_icon_name}, 목적지: {destination_icon_name}")
+   
+    def setup_pinky_image(self):
+        # Map 위젯 위에 Pinky 설정
+        self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
+        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+        
+        # QPixmap 투명 배경 유지 (Alpha 채널 유지)
+        self.pinky_image.setPixmap(pinky_pixmap)
+        self.pinky_image.setGeometry(0, 0, 80, 80)  # 초기 크기와 위치 설정
+        self.pinky_image.setScaledContents(True)
+        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
+        
+        # Pinky 이미지를 항상 맨 앞에 위치 (Map 바로 위)
+        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)  # 마우스 이벤트 무시
+        self.pinky_image.raise_()  # 맨 앞에 위치
 
     def update_pinky_position(self, x, y):
-        self.pinky_image.move(int(x), int(y))
-
+        print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+        self.pinky_image.move(int(x - 25), int(y - 25))
+    
     def send_boarding_request(self):
         vehicle_id = UserSession.get_taxi_id()
         response = RestAPIManager().send_post_request("/check_boarding", {"vehicle_id": vehicle_id, "event_type": 11, "data": ""})
@@ -90,7 +94,8 @@ class RidingWindow(QMainWindow):
         from driving import DrivingWindow
         self.driving_window = DrivingWindow(
             start_icon_name=self.start_icon,
-            destination_icon_name=self.destination_icon
+            destination_icon_name=self.destination_icon,
+            mapper=self.pinky.mapper 
         )
         self.driving_window.show()
         self.close()
@@ -117,7 +122,3 @@ class RidingWindow(QMainWindow):
         self.start_icon = start_icon
         self.destination_icon = destination_icon
         # 여기서 LineEdit에 출발지/목적지 표시 갱신
-
-
- 
-

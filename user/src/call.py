@@ -12,6 +12,7 @@ from Pinkymanager import *
 from riding import *
 from LeftMoney import LeftMoneyManager
 from LeftMoney import * 
+from Icon_coordinates import *
 
 # stderr (경고 메시지) 출력 차단
 sys.stderr = open(os.devnull, 'w')
@@ -35,6 +36,22 @@ class CallWindow(QMainWindow):
         self.line_edit_handler = LineEditHandler(self)
         self.location_names = LocationManager.get_location_names()
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
+
+        # CoordinateMapper 초기화 (이미지 크기, 마커 위치 지정)
+        self.mapper = CoordinateMapper(
+            img_width=521, 
+            img_height=351, 
+            world2pix_pairs={
+                (0.263, 0.161): (34, 42),
+                (0.17, 0.217): (496, 17),
+                (-0.015, -0.078): (16, 325),
+                (-0.045, 0.021): (499, 321),
+                (0.08, 0.069): (236, 164),
+                (0.1, 0.097): (274, 165),
+            },
+            marker_length=0.1
+        )
+
         
         # 아이콘 핸들러 설정
         self.icon_handler = IconHandler(self, {
@@ -50,8 +67,7 @@ class CallWindow(QMainWindow):
         self.destination_location = self.destination  # QLineEdit (목적지)
         
         # 출발지/목적지 아이콘 유지
-        self.start_location = self.start  # QLineEdit (출발지)
-        self.destination_location = self.destination
+  
         self.icon_handler.set_fixed_icons(start_icon_name, destination_icon_name)
         
         # 출발지/목적지 이름을 상태로 저장
@@ -59,25 +75,20 @@ class CallWindow(QMainWindow):
         self.destination_icon = destination_icon_name
         self.set_location_text(self.start_icon, self.destination_icon)
 
+        self.setup_pinky_image()
 
-        # PinkyManager 설정
-        self.pinky_manager = PinkyManager()
-        self.pinky_manager.position_updated.connect(self.update_pinky_position)
-        self.pinky_manager.start_reached.connect(self.switch_to_riding_window)
-         
-        # Map 위젯 위에 Pinky 설정
-        self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
-        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+        vehicle_id = UserSession.get_taxi_id()
+        if vehicle_id is None:
+              raise ValueError("[ERROR] UserSession에 vehicle_id가 설정되지 않았습니다.")
         
-        # QPixmap 투명 배경 유지 (Alpha 채널 유지)
-        self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
-        self.pinky_image.setScaledContents(True)
-        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
         
-        # Pinky 이미지를 항상 맨 앞에 위치 (Map 바로 위)
-        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)  # 마우스 이벤트 무시
-        self.pinky_image.raise_()  # 맨 앞에 위치
+        
+        self.pinky = PinkyManager.get_instance(mapper=self.mapper)
+
+        self.pinky.position_updated.connect(self.update_pinky_position)
+        self.pinky.start_reached.connect(self.switch_to_riding_window)
+        self.pinky.start()
+        self.reached_shown = False 
 
         # 디버그 버튼 설정
         self.Debug.clicked.connect(self.debug_button_clicked)
@@ -85,11 +96,23 @@ class CallWindow(QMainWindow):
         # 디버그 클릭 횟수
         self.debug_click_count = 0
 
+    
+    def setup_pinky_image(self):
+        # Map 위젯 위에 Pinky 설정
+        self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
+        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+        
+        # QPixmap 투명 배경 유지 (Alpha 채널 유지)
+        self.pinky_image.setPixmap(pinky_pixmap)
+        self.pinky_image.setGeometry(0, 0, 80, 80)  # 초기 크기와 위치 설정
+        self.pinky_image.setScaledContents(True)
+        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
+        
+        # Pinky 이미지를 항상 맨 앞에 위치 (Map 바로 위)
+        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)  # 마우스 이벤트 무시
+        self.pinky_image.raise_()  # 맨 앞에 위치
 
-        # 출발지/목적지 아이콘 유지
-        self.start_location = self.start  # QLineEdit (출발지)
-        self.destination_location = self.destination
-        self.icon_handler.set_fixed_icons(start_icon_name, destination_icon_name)
+
 
     def show_charge_page(self):
         from charge import ChargeWindow
@@ -124,29 +147,31 @@ class CallWindow(QMainWindow):
             from riding import RidingWindow
             self.riding_window = RidingWindow(
                 start_icon_name=start_icon_name,
-                destination_icon_name=destination_icon_name
+                destination_icon_name=destination_icon_name,
+                mapper=self.mapper 
             )
             self.riding_window.show()
             self.close()
           
 
-    def transition_to_riding_page(self):
-        from riding import RidingWindow
-        self.riding_window = RidingWindow()
-        self.riding_window.show()
-        self.close()
-
     #---------------------------------------------------------------------------
     def update_pinky_position(self, x, y):
-        self.pinky_image.move(int(x), int(y))
+        print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+        self.pinky_image.move(int(x - 25), int(y - 25))
+
 
     def switch_to_riding_window(self):
+        if self.reached_shown:
+            return
+        self.reached_shown = True
+
         start_icon_name = self.icon_handler.start_icon.objectName() if self.icon_handler.start_icon else "Unknown"
         destination_icon_name = self.icon_handler.destination_icon.objectName() if self.icon_handler.destination_icon else "Unknown"
         from riding import RidingWindow
         self.riding_window = RidingWindow(
             start_icon_name=start_icon_name,
-            destination_icon_name=destination_icon_name
+            destination_icon_name=destination_icon_name,
+            mapper=self.mapper 
         )
         self.riding_window.show()
         self.close()
@@ -165,4 +190,3 @@ class CallWindow(QMainWindow):
     def get_ui_path(self, ui_file):
         base_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(base_dir, "ui", ui_file)
-

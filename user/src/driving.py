@@ -21,10 +21,11 @@ QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=fals
 
 
 class DrivingWindow(QMainWindow):
-    def __init__(self, start_icon_name, destination_icon_name):
+    def __init__(self, start_icon_name, destination_icon_name, mapper):
         super().__init__()
         uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/3_driving.ui"), self)
-        
+        self.mapper = mapper
+
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()
         self.start_location = None
@@ -60,24 +61,14 @@ class DrivingWindow(QMainWindow):
         self.set_location_text(self.start_icon, self.destination_icon)
 
         # PinkyManager 설정
-        self.pinky_manager = PinkyManager()
-        self.pinky_manager.position_updated.connect(self.update_pinky_position)
-        self.pinky_manager.destination_reached.connect(self.switch_to_end_window)
+        self.pinky = PinkyManager.get_instance(mapper=self.mapper)
+        self.pinky.position_updated.connect(self.update_pinky_position)
+        self.pinky.destination_reached.connect(self.switch_to_end_window)
+        self.end_shown = False
+        self.setup_pinky_image()
 
-        self.pinky_image = QLabel(self.Map)  # Map 위젯에 Pinky 설정
-        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+
         
-        # QPixmap 투명 배경 유지 (알파 채널 사용)
-        pinky_pixmap = pinky_pixmap.transformed(QTransform().scale(1, 1), Qt.TransformationMode.SmoothTransformation)
-        self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
-        self.pinky_image.setScaledContents(True)
-        self.pinky_image.setVisible(True)
-        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
-        
-        # Pinky 이미지를 맨 앞에 표시 (Z-Index 조정)
-        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)   # 마우스 이벤트 무시
-        self.pinky_image.raise_()  # 맨 앞에 위치
         # 디버그 버튼 설정
         self.Debug.clicked.connect(self.debug_button_clicked)
 
@@ -89,6 +80,21 @@ class DrivingWindow(QMainWindow):
         self.start_location = self.start  # QLineEdit (출발지)
         self.destination_location = self.destination
         self.icon_handler.set_fixed_icons(start_icon_name, destination_icon_name)
+    
+    def setup_pinky_image(self):
+        # Map 위젯 위에 Pinky 설정
+        self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
+        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+        
+        # QPixmap 투명 배경 유지 (Alpha 채널 유지)
+        self.pinky_image.setPixmap(pinky_pixmap)
+        self.pinky_image.setGeometry(0, 0, 80, 80)  # 초기 크기와 위치 설정
+        self.pinky_image.setScaledContents(True)
+        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
+        
+        # Pinky 이미지를 항상 맨 앞에 위치 (Map 바로 위)
+        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)  # 마우스 이벤트 무시
+        self.pinky_image.raise_()  # 맨 앞에 위치
 
 
     def show_charge_page(self):
@@ -125,7 +131,8 @@ class DrivingWindow(QMainWindow):
             from end import EndWindow
             self.end_window = EndWindow(
                 start_icon_name=start_icon_name,
-                destination_icon_name=destination_icon_name
+                destination_icon_name=destination_icon_name,
+                mapper=self.pinky.mapper
             )
             self.end_window.show()
             self.close()
@@ -135,16 +142,21 @@ class DrivingWindow(QMainWindow):
     #---------------------------------------------------------------------------
 
     def update_pinky_position(self, x, y):
-        self.pinky_image.move(int(x), int(y))
+        print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+        self.pinky_image.move(int(x - 25), int(y - 25))
 
 
     def switch_to_end_window(self):
+        if self.end_shown:
+            return
+        self.end_shown = True
         start_icon_name = self.icon_handler.start_icon.objectName() if self.icon_handler.start_icon else "Unknown"
         destination_icon_name = self.icon_handler.destination_icon.objectName() if self.icon_handler.destination_icon else "Unknown"
         from end import EndWindow
         self.end_window = EndWindow(
             start_icon_name=start_icon_name,
-            destination_icon_name=destination_icon_name
+            destination_icon_name=destination_icon_name,
+            mapper=self.pinky.mapper
         )
         self.end_window.show()
         self.close()
