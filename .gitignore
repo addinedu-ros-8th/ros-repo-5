@@ -227,3 +227,4 @@ Thumbs.db
 *.cache
 *.csv
 *.npy
+*.env

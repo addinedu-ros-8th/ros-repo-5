@@ -1,21 +1,31 @@
+# self.state = ready dispatch boarded drive landing completed charged
+
 class Taxi:
-    def __init__(self, taxi_id, max_passengers):
-        self.taxi_id = taxi_id
+    def __init__(self, vehicle_id, max_passengers, station_node):
+        self.vehicle_id = vehicle_id
         self.state = "ready"
         self.location = (0.0, 0.0)
         self.start = (0.0, 0.0)
+        self.start_node = None
         self.destination = (0.0, 0.0)
+        self.destination_node = None
         self.passenger_count = 0
         self.battery = 0.0 
-        self.client_id = None
+        self.passenger_id = None
         self.max_passengers = max_passengers
+        self.dispatches_id = None
+        self.passenger_state = None        
+        self.station_node = station_node
 
-    def assign(self, start_x, start_y, dest_x, dest_y, passenger_count, client_id):
+    def dispatch(self, start_x, start_y, start_node, dest_x, dest_y, destination_node, passenger_count, passenger_id, dispatches_id):
         self.start = (start_x, start_y)
+        self.start_node = start_node
         self.destination = (dest_x, dest_y)
+        self.destination_node = destination_node
         self.passenger_count = passenger_count
-        self.client_id = client_id
-        self.state = "assigned"
+        self.passenger_id = passenger_id
+        self.dispatches_id = dispatches_id
+        self.state = "dispatch"
 
     def update_location(self, x, y):
         self.location = (x, y)
@@ -36,13 +46,17 @@ class Taxi:
 
     def to_dict(self):
         return {
-            "taxi_id": self.taxi_id,
+            "vehicle_id": self.vehicle_id,
             "state": self.state,
             "location": self.location,
             "start": self.start,
+            "start_node": self.start_node,
             "destination": self.destination,
+            "destination_node": self.destination_node,
             "passenger_count": self.passenger_count,
-            "client_id": self.client_id,
             "battery": self.battery,
-            "max_passengers": self.max_passengers
+            "max_passengers": self.max_passengers,
+            "passenger_id": self.passenger_id,
+            "dispatches_id": self.dispatches_id,
+            "passenger_state": self.passenger_state
         }

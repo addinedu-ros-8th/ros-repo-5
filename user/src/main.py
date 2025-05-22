@@ -1,93 +1,197 @@
 import sys
-from PyQt6.QtWidgets import *
-from PyQt6.QtGui import *
-from PyQt6 import uic
-import socket
+import requests
+import json
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QPalette, QColor
+from PyQt6.QtCore import QEvent, Qt, pyqtSlot, QThread
+from charge import *
+from Icon_coordinates import ICON_COORDINATES
+from IconHandler import * 
+from Restapi import * 
+from Pinkymanager import * 
+from UserSession import UserSession
+from LeftMoney import * 
+from PyQt6.QtCore import QLoggingCategory
 
-ip = ""  # 서버 IP
-port = 9000          # 서버 포트
 
-from_class = uic.loadUiType("/Users/gaji/dev/ros2project/usergui/ui/Main.ui")[0]
+# stderr (경고 메시지) 출력 차단
+sys.stderr = open(os.devnull, 'w')
 
-# ----------------------------------------------
-# TCP 클라이언트 설정 (소켓)
-# ----------------------------------------------
-class SocketManager:
-    def __init__(self, ip, port):
-        self.server_ip = ip
-        self.server_port = port
-        self.client_socket = None
-        self.connect_to_server()
+# 모든 Qt 경고 메시지 차단
+QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
 
-    def connect_to_server(self):
-        try:
-            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect((self.server_ip, self.server_port))
-            print(f"[INFO] 서버 {self.server_ip}:{self.server_port}에 연결됨")
-        except Exception as e:
-            print(f"[ERROR] 서버 연결 실패: {e}")
 
-    def send_message(self, message: str):
-        if self.client_socket:
-            try:
-                self.client_socket.send(message.encode('utf-8'))
-                response = self.client_socket.recv(1024).decode('utf-8')
-                print(f"[서버 응답] {response}")  # 터미널에 서버 응답 출력
-                return response
-            except Exception as e:
-                print(f"[ERROR] 메시지 전송 실패: {e}")
-        else:
-            print("[ERROR] 서버에 연결되지 않음")
+from_class = uic.loadUiType("/home/lim/dev_ws/addintexi/UserGUI/ui/0_Main.ui")[0]
 
-    def close_connection(self):
-        if self.client_socket:
-            self.client_socket.close()
-            print("[INFO] 서버 연결이 종료되었습니다.")
-
-# ----------------------------------------------
-# 메인 페이지 (GUI)
-# ----------------------------------------------
-class WindowClass(QMainWindow, from_class):
+class MainWindow(QMainWindow, from_class):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.socket_manager = SocketManager(ip, port)  # TCP 클라이언트 생성
+        
+        # REST API 클라이언트 생성
+        self.api_manager = RestAPIManager()
+        self.start_location = None
+        self.end_location = None
 
-        #btn
-        self.ChargeBtn.clicked.connect(self.EnterChargePage)
-        self.CheckBtn.clicked.connect(self.SendMessage)
 
-    def SendMessage(self):
-        message = "[USER_SEND]테스트메세지"  
-        response = self.socket_manager.send_message(message)
-        if response:
-            print(f"[클라이언트] 서버로부터 응답: {response}")
+        # 로그인된 사용자 확인
+        if UserSession.is_logged_in():
+            user_id = UserSession.get_current_user()
         else:
-            print("[클라이언트] 서버로부터 응답 없음")
+            print("비로그인")
+            sys.exit(app.exec())
 
-    def closeEvent(self, event):
-        # 종료 시 서버 연결 닫기
-        self.socket_manager.close_connection()
+        self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
+        self.pinky_manager = PinkyManager()
+        
+        # 서버 시작 시 모든 택시 초기화
+        # self.reset_taxi_ids([1, 2])
 
-    
-    def EnterChargePage(self):
-        self.charge_window = ChargeWindow()
-        self.charge_window.show()
+        # 아이콘 및 정보창 설정
+        self.icon_handler = IconHandler(self, {
+            "Icon1": "Info1",
+            "Icon2": "Info2",
+            "Icon3": "Info3",
+            "Icon4": "Info4",
+            "Icon5": "Info5",
+            "Icon6": "Info6"
+        })
 
-#----------------------------------------------
-# 결제 페이지 
-#---------------------------------------------- 
  
-class ChargeWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        uic.loadUI("/Users/gaji/dev/ros2project/usergui/ui/Charge.ui",self)
+        # 아이콘 위치 이름
+        self.line_edit_handler = LineEditHandler(self)
+        self.location_names = LocationManager.get_location_names()
+        self.line_edit_handler.clear_line_edits()
+ 
+        # 인원 수 설정: QComboBox
+        self.comboBox.addItems(["1명", "2명", "3명", "4명", "5명" ,"6명"])
+        self.comboBox.setCurrentIndex(0)  # 기본값 1명
+
+        # 호출하기 버튼 연결
+        self.CheckBtn.clicked.connect(self.send_selected_location)
+        self.ChargeBtn.clicked.connect(self.show_charge_page)
+
+    def update_line_edits(self):
+        """
+        선택된 아이콘에 따라 LineEdit에 위치 이름 표시
+        """
+        if self.icon_handler.start_icon:
+            start_name = self.location_names.get(self.icon_handler.start_icon.objectName(), "출발지 선택")
+            self.line_edit_handler.update_line_edit("start", start_name)
+        else:
+            self.line_edit_handler.update_line_edit("start", "")
+
+        if self.icon_handler.destination_icon:
+            destination_name = self.location_names.get(self.icon_handler.destination_icon.objectName(), "목적지 선택")
+            self.line_edit_handler.update_line_edit("destination", destination_name)
+        else:
+            self.line_edit_handler.update_line_edit("destination", "")
+
+    def show_charge_page(self):
+        self.charge_window = ChargeWindow(previous_window="main")
+        self.charge_window.show()
+        self.hide()
+
+    # def reset_taxi_ids(self, taxi_ids):
+    #     """
+    #     서버로 지정된 택시 ID 초기화 요청 (reset_taxi)
+    #     """
+    #     for taxi_id in taxi_ids:
+    #         reset_data = {"vehicle_id": taxi_id}
+    #         response = self.api_manager.send_post_request("/reset_taxi", reset_data)
+    #         if response and response.get("status") == "reset complete":
+    #             print(f"[INFO] 택시 {taxi_id} 초기화 완료.")
+    #         else:
+    #             print(f"[ERROR] 택시 {taxi_id} 초기화에 실패했습니다.")
 
 
+    def send_selected_location(self):
+        self.update_line_edits()
+
+        # 선택된 아이콘 번호와 좌표 가져오기
+        start_coords, destination_coords = self.icon_handler.get_selected_coordinates()
+        
+        # 인원 수: 숫자만 추출
+        selected_passenger_count_text = self.comboBox.currentText()
+        selected_passenger_count = int(''.join(filter(str.isdigit, selected_passenger_count_text)))
+
+
+        if start_coords and destination_coords:
+            start_x, start_y = start_coords
+            dest_x, dest_y = destination_coords
+            client_id = UserSession.get_current_user()
+            if not client_id: 
+                QMessageBox.warning(self,"에러","비로그인-디버깅처리")
+                #디버깅
+                #client_id ="1"
+
+            # JSON 요청 생성
+            request_data = {
+                "start_x": start_x,
+                "start_y": start_y,
+                "dest_x": dest_x,
+                "dest_y": dest_y,
+                "passenger_count": selected_passenger_count,
+                "passenger_id": client_id
+            }
+
+            print(f"[DEBUG] 서버로 전송할 JSON: {request_data}")
+
+            # REST API POST 요청 
+            response = self.api_manager.send_post_request("/call_taxi", request_data)
+
+
+            # call.py 페이지로 이동 -> 디버깅용 코드
+            from call import CallWindow
+            self.call_window = CallWindow(
+                self.icon_handler.start_icon.objectName(),
+                self.icon_handler.destination_icon.objectName(),
+            )
+            self.call_window.show()
+            self.close()
+          
+          # 서버 응답 확인
+            if response:
+                print(f"[INFO] 서버 응답: {response}")
+                if response.get("status") == "taxi assigned":
+                    print(f"[INFO] 택시 배정 완료 - 택시 ID: {response.get('vehicle_id')}")
+                    taxi_id = response.get("vehicle_id")
+                    UserSession.set_taxi_id(taxi_id)
+
+                    # 핑키에게 전달
+                    
+                    self.pinky_manager.set_destinations(start_coords, destination_coords)
+                    self.pinky_manager.start()
+                    
+                    # 좌표 저장 (출발지/목적지
+                    self.start_coords = start_coords
+                    self.destination_coords = destination_coords
+                    self.pinky_manager.set_destinations(self.start_coords, self.destination_coords)
+                    self.pinky_manager.start()
+
+                    # 선택된 아이콘 번호와 좌표를 애플리케이션 전역에 저장
+                    from call import CallWindow
+                    self.call_window = CallWindow(
+                        self.icon_handler.start_icon.objectName(),
+                        self.icon_handler.destination_icon.objectName(),
+                    )
+                    self.call_window.show()
+                    self.close()
+
+                else:
+                    print(f"[ERROR] 서버 오류 또는 응답 처리 문제: {response.get('message')}")
+            else:
+                print("[ERROR] 서버 응답을 수신할 수 없습니다.")
+        else:
+            QMessageBox.warning(self, "에러", "출발지와 목적지를 선택해주세요.")
+
+    def get_ui_path(self, ui_file):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(base_dir, "ui", ui_file)
+            
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    myWindows = WindowClass()
-    myWindows.show()
+    main_window = MainWindow()
+    main_window.show()
     sys.exit(app.exec())
-

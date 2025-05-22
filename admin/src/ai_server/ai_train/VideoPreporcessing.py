@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 
 class DataPreprocessing:
-    def __init__(self, video_dir='/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/dataset/video', output_dir='/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/dataset/', frame_rate=2):
+    def __init__(self, video_dir='/home/vit/dev_ws/project/traffic_dataset/video', output_dir='/home/vit/dev_ws/project/traffic_dataset/dataset', frame_rate=6):
         self.video_dir = video_dir
         self.output_dir = output_dir
         self.frame_rate = frame_rate

@@ -1,11 +1,15 @@
-from setuptools import setup, find_packages  
+from setuptools import setup, find_packages
 
 package_name = 'controll_server_pkg'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(include=[package_name, f"{package_name}.*"]),  
+    packages=find_packages(include=[package_name, f"{package_name}.*"]),
+    include_package_data=True,  # ✅ 이거 꼭 있어야 아래 package_data가 반영됨
+    package_data={
+        package_name: ['config/*.env'],  # ✅ .env 포함 (예: config/database.env)
+    },
     data_files=[
         ('share/' + package_name, ['package.xml']),
     ],

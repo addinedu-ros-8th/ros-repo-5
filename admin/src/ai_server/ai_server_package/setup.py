@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'ai_server = ai_server_package.ai_server:main'
+            'ai_service = ai_server_package.ai_service:main'
         ],
     },
 )

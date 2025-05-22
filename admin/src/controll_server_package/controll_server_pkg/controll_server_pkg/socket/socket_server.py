@@ -1,66 +1,62 @@
 import socket
 import threading
-from struct import Struct
+import time
+import json
+from controll_server_pkg.common.database import Database
 
 HOST = '0.0.0.0'
 PORT = 9000
 
-header_struct = Struct('@i')  # 메시지 코드
-format_map = {
-    1: Struct('@iiiii'),  # 타입 1: x1, y1, x2, y2, count
-    2: Struct('@i'),       # 타입 2: command_code
-}
-response_struct = Struct('@ii')  # 응답: command_code, result_value
-
 class SocketServer:
-    def __init__(self, manager):
+    def __init__(self, manager=None):
         self.manager = manager
-        self.manager.set_socket(self)
+        if self.manager:
+            self.manager.set_socket(self)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_threads = []
 
     def handle_client(self, conn, addr):
         print(f"🧩 연결됨: {addr}")
         try:
+            # 초기 JSON 수신
+            raw = conn.recv(1024).decode().strip()
+            if raw == "disconnect":
+                print(f"🔌 클라이언트가 즉시 종료 요청")
+                return
+
+            try:
+                payload = json.loads(raw)
+                vehicle_id = payload["vehicle_id"]
+                print(f"📨 초기 수신: vehicle_id={vehicle_id}")
+            except Exception as e:
+                print(f"[❌ JSON 파싱 실패] {e} - 원본: {raw}")
+                conn.close()
+                return
+
+            # 🔁 주기적으로 Taxi 정보 전송
             while True:
-                code_data = conn.recv(header_struct.size)
-                if not code_data:
-                    break
-
-                msg_code = header_struct.unpack(code_data)[0]
-                print(f"🆔 수신된 메시지 코드: {msg_code}")
-
-                if msg_code in format_map:
-                    payload_struct = format_map[msg_code]
-                    payload_data = conn.recv(payload_struct.size)
-                    if not payload_data:
+                conn.settimeout(0.1)
+                try:
+                    signal = conn.recv(1024).decode().strip()
+                    if signal == "disconnect":
+                        print(f"🔚 클라이언트 종료 요청 수신: {addr}")
                         break
+                except socket.timeout:
+                    pass
+                
+                # ✅ Taxi 조회 (RestServer와 동일한 방식)
+                taxi = self.manager.get_taxi(vehicle_id)
 
-                    if msg_code == 1:
-                        x1, y1, x2, y2, count = payload_struct.unpack(payload_data)
-                        print(f"📨 [타입1] 출발=({x1},{y1}), 도착=({x2},{y2}), 인원={count}")
-
-                        # 예: ROS 드라이브 노드 호출
-                        if self.manager.ros_drive:
-                            self.manager.ros_drive.handle_message({
-                                "pinky_num": 1,  # 임의 고정, 필요시 count 기준 분기 가능
-                                "x": x2,
-                                "y": y2
-                            })
-
-                        command_code = 1
-                        result_value = x2 + y2
-
-                    elif msg_code == 2:
-                        command_code, = payload_struct.unpack(payload_data)
-                        print(f"📨 [타입2] 명령 코드 수신: {command_code}")
-                        result_value = command_code + 1000
-
-                    response = response_struct.pack(command_code, result_value)
-                    conn.send(response)
-                else:
-                    print(f"⚠️ 알 수 없는 메시지 코드: {msg_code}")
-                    break
+                if not taxi:
+                    print(f"🚫 존재하지 않는 vehicle_id: {vehicle_id}")
+                    conn.sendall(json.dumps({"error": f"Taxi {vehicle_id} not found"}) .encode())
+                    conn.close()
+                    return
+            
+                taxi_data = taxi.to_dict()
+                conn.sendall((json.dumps(taxi_data) + "\n").encode())
+                print(f"[📤 전송됨] {taxi_data}")
+                time.sleep(2)
 
         except Exception as e:
             print(f"❌ 예외 발생: {e}")
@@ -79,14 +75,8 @@ class SocketServer:
             thread.start()
             self.client_threads.append(thread)
 
-    def handle_message(self, msg):
-        print(f"[SocketServer] 외부로부터 메시지 수신: {msg}")
-
-# 🟡 단독 실행용 main()
 def main():
-    from controll_server_pkg.common.manager import ServiceManager
-    manager = ServiceManager()
-    server = SocketServer(manager)
+    server = SocketServer()
     server.run()
 
 if __name__ == "__main__":

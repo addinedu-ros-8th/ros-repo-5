@@ -4,7 +4,9 @@ from controll_server_pkg.api.rest_server import RestServer
 from controll_server_pkg.socket.socket_server import SocketServer
 from controll_server_pkg.ros.admin_gui_service import AdminServiceNode
 from controll_server_pkg.ros.drive_router_node import DriveRouterNode
-from controll_server_pkg.ros.taxi_state_node import TaxiStateNode  # ✅ 추가
+from controll_server_pkg.ros.taxi_state_node import TaxiStateNode  
+from controll_server_pkg.ros.taxi_event_service import TaxiEventServiceNode  
+from controll_server_pkg.ros.admin_gui_topic import AdminGuiTopicPublisher
 from controll_server_pkg.common.manager import ServiceManager
 
 import rclpy
@@ -21,14 +23,18 @@ def run_tcp_server(manager):
 def run_ros_nodes(manager):
     rclpy.init()
     admin_node = AdminServiceNode(manager)
-    drive_node = DriveRouterNode(manager)
-    taxi_state_node = TaxiStateNode(manager)  # ✅ 택시 상태 노드 추가
+    taxi_state_node = TaxiStateNode(manager)  
+    taxi_event_node = TaxiEventServiceNode(manager)
+    drive_router_node = DriveRouterNode(manager)
+    admin_gui_topic = AdminGuiTopicPublisher(manager)
 
     executor = MultiThreadedExecutor()
     executor.add_node(admin_node)
-    executor.add_node(drive_node)
-    executor.add_node(taxi_state_node)  # ✅ 실행에 포함
-
+    executor.add_node(taxi_state_node)
+    executor.add_node(taxi_event_node)
+    executor.add_node(drive_router_node)
+    executor.add_node(admin_gui_topic)
+    
     print("🚦 ROS 노드 실행 중 (admin + drive + taxi_state)")
     executor.spin()
     rclpy.shutdown()

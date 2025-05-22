@@ -35,12 +35,9 @@
 </string>
        </property>
        <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
-       <property name="frameShadow">
-        <enum>QFrame::Raised</enum>
-       </property>
-       <widget class="QToolButton" name="ChargeBtn">
+       <widget class="QToolButton" name="Undobtn">
         <property name="geometry">
          <rect>
           <x>410</x>
@@ -50,11 +47,17 @@
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: #FFD43B;
-color: black;
-font-weight: bold;
-border-radius: 5px;
-padding: 5px 10px;
+         <string notr="true">QToolButton {
+    background-color: #FFD43B;
+    color: black;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: none;
+    qproperty-icon: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/Undo.png); /* 이미지 경로 지정 */
+    qproperty-iconSize: 40px 40px;  /* 이미지 크기 설정 */
+    text-align: center;            /* 텍스트 가운데 정렬 */
+}
 </string>
         </property>
         <property name="text">
@@ -69,6 +72,17 @@ padding: 5px 10px;
           <width>81</width>
           <height>71</height>
          </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLineEdit {
+    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/logo.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}
+</string>
         </property>
        </widget>
       </widget>
@@ -132,7 +146,7 @@ padding: 5px 10px;</string>
        <string>현재 잔액: </string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit">
+     <widget class="QLineEdit" name="LeftMoney">
       <property name="geometry">
        <rect>
         <x>120</x>
@@ -141,8 +155,11 @@ padding: 5px 10px;</string>
         <height>41</height>
        </rect>
       </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
      </widget>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="ResetBtn">
       <property name="geometry">
        <rect>
         <x>350</x>
@@ -168,7 +185,7 @@ padding: 5px 10px;</string>
      <property name="title">
       <string>충전</string>
      </property>
-     <widget class="QLineEdit" name="lineEdit_2">
+     <widget class="QLineEdit" name="charge">
       <property name="geometry">
        <rect>
         <x>100</x>
@@ -193,17 +210,24 @@ padding: 5px 10px;</string>
      </widget>
     </widget>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>160</y>
-      <width>271</width>
-      <height>61</height>
+      <x>40</x>
+      <y>170</y>
+      <width>461</width>
+      <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
     <property name="text">
-     <string>먼저, 카드를 단말에 대고, 충전해주세요</string>
+     <string>                        충전할 금액을 입력해주세요</string>
     </property>
    </widget>
   </widget>

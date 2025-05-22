@@ -1,13 +1,15 @@
 import networkx as nx
 import numpy as np
+from controll_server_pkg.common.database import Database
 
 # 🔹 노드 위치 정보
 positions = {
-    "A": (192, 170), "B": (621, 88), "C": (1130, 64), "D": (1500, 115), "E": (1150, 159),
-    "F": (282, 244), "G": (631, 216), "H": (1138, 274), "I": (1387, 328),
-    "J": (252, 472), "K": (780, 502), "L": (904, 515), "M": (1466, 560),
-    "N": (267, 694), "O": (598, 734), "P": (1114, 817), "Q": (1448, 770),
-    "R": (210, 944), "S": (555, 984), "T": (575, 857), "U": (1156, 941), "V": (1512, 904)
+    "A": (0.262, 0.161), "B": (0.241, 0.196), "C": (0.215, 0.229), "D": (0.17, 0.217), "E": (0.177, 0.192),
+    "F": (0.205, 0.127), "G": (0.183, 0.146), "H": (0.139, 0.16), "I": (0.102, 0.148),
+    "J": (0.127, 0.057), "K": (0.08, 0.069), "L": (0.1, 0.097), "M": (0.039, 0.094),
+    "N": (0.063, 0.005), "O": (0.031, 0.002), "P": (-0.013, 0.015), "Q": (-0.022, 0.033),
+    "R": (-0.015, -0.078), "S": (-0.036, -0.055), "T": (-0.005, -0.017), "U": (-0.055, -0.018), "V": (-0.045, 0.021)
+
 }
 
 # 🔹 휴리스틱 함수
@@ -19,10 +21,10 @@ def heuristic(n1, n2):
 # 🔹 그래프 정의
 G = nx.DiGraph()
 G.add_edges_from([
-    ('A', 'R'), ('B', 'A'), ('C', 'B'), ('C', 'E'), ('E', 'K'), ('D', 'C'),
+    ('B', 'A'), ('A', 'R'), ('C', 'B'), ('C', 'E'), ('E', 'K'), ('D', 'C'),
     ('F', 'G'), ('G', 'K'), ('H', 'I'), ('I', 'M'),
-    ('J', 'F'), ('K', 'O'), ('L', 'B'), ('L', 'H'), ('M', 'Q'), ('Q', 'P'),
-    ('N', 'J'), ('O', 'N'), ('P', 'L'), ('P', 'L'), ('K', 'U'),
+    ('N', 'J'), ('N', 'J'),('J', 'F'), ('K', 'U'), ('K', 'O'), ('L', 'B'), ('L', 'H'), ('I', 'M'), ('M', 'Q'), ('Q', 'P'),
+    ('O', 'N'), ('P', 'L'), ('P', 'L'),
     ('R', 'S'), ('S', 'T'), ('S', 'U'), ('T', 'L'), ('U', 'V'), ('V', 'D')
 ])
 for u, v in G.edges:
@@ -44,7 +46,10 @@ def get_astar_distance(x1, y1, x2, y2):
         return float('inf'), []
 
 # 🔹 배차 로직
-def assign_taxi(taxis: dict, request: dict):
+def dispatch(taxis: dict, request: dict, call_id: int):
+    db = Database()
+    
+    start_x, start_y = request["start_x"], request["start_y"]
     dest_x, dest_y = request["dest_x"], request["dest_y"]
     required_passengers = request["passenger_count"]
 
@@ -52,7 +57,7 @@ def assign_taxi(taxis: dict, request: dict):
         taxi for taxi in taxis.values()
         if (
             taxi.state == "ready" and
-            taxi.battery >= 60.0 and
+            taxi.battery >= 10.0 and
             taxi.max_passengers >= required_passengers
         )
     ]
@@ -63,22 +68,42 @@ def assign_taxi(taxis: dict, request: dict):
 
     taxi_distances = {}
     for taxi in available:
-        dist, path = get_astar_distance(taxi.location[0], taxi.location[1], dest_x, dest_y)
-        taxi_distances[taxi.taxi_id] = (dist, path)
-        print(f"🚕 택시 {taxi.taxi_id}: 예상 거리={dist:.1f}, 경로={path}")
+        dist, path = get_astar_distance(taxi.location[0], taxi.location[1], start_x, start_y)
+        taxi_distances[taxi.vehicle_id] = (dist, path)
+        print(f"🚕 택시 {taxi.vehicle_id}: 예상 거리={dist:.1f}, 경로={path}")
 
-    best_taxi = min(available, key=lambda t: taxi_distances[t.taxi_id][0])
-    best_dist, best_path = taxi_distances[best_taxi.taxi_id]
+    best_taxi = min(available, key=lambda t: taxi_distances[t.vehicle_id][0])
+    best_dist, best_path = taxi_distances[best_taxi.vehicle_id]
 
-    best_taxi.assign(
-        start_x=request["start_x"],
-        start_y=request["start_y"],
-        dest_x=dest_x,
-        dest_y=dest_y,
-        passenger_count=request["passenger_count"],
-        client_id=request["client_id"]
+    dispatches_id = db.execute_insert(
+        """INSERT INTO `Dispatches` (
+            call_id, 
+            vehicle_id,                  
+            end_point,
+            fare
+        ) VALUES (
+            %s, %s, %s, %s
+        )""",
+        (
+            call_id,
+            best_taxi.vehicle_id,
+            f"{dest_x} , {dest_y}",
+            0
+        )
     )
 
-    print(f"✅ 택시 {best_taxi.taxi_id} 배차됨 → 거리: {best_dist:.1f} → 경로: {best_path}")
+    best_taxi.dispatch(
+        start_x=start_x,
+        start_y=start_y,
+        start_node=find_closest_node(start_x, start_y),
+        dest_x=dest_x,
+        dest_y=dest_y,
+        destination_node=find_closest_node(dest_x, dest_y),
+        passenger_count=request["passenger_count"],
+        passenger_id=request["passenger_id"],
+        dispatches_id=dispatches_id
+    )
+
+    print(f"✅ 택시 {best_taxi.vehicle_id} 배차됨 → 거리: {best_dist:.1f} → 경로: {best_path}")
 
     return best_taxi
