@@ -176,7 +176,6 @@ class DriveRouterNode(Node):
 
         if ids is not None and len(corners) > 0:
             for i in range(len(ids)):
-                # if int(ids[i][0] != self.vehicle_id):
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
                 pos = tvec[0][0]
                 x, y = pos[0], pos[1]
@@ -185,19 +184,20 @@ class DriveRouterNode(Node):
 
                 if self.goal_node is None:
                     self.get_logger().info("대기중")
-                    return   
+                    return
+                
+                if int(ids[i][0] != self.vehicle_id):
+                    if self.goal_node not in self.marker_positions:
+                        self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
+                        self.arrived = True
+                        return self.behavior["stop"]
 
-                if self.goal_node not in self.marker_positions:
-                    self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
-                    self.arrived = True
-                    return self.behavior["stop"]
+                    # 최초 경로 설정
+                    if self.path is None or self.goal_node != self.path[-1]:
+                        current_node = self.find_nearest_node(robot_pos)
+                        self.set_goal_path(current_node, self.goal_node)
 
-                # 최초 경로 설정
-                if self.path is None or self.goal_node != self.path[-1]:
-                    current_node = self.find_nearest_node(robot_pos)
-                    self.set_goal_path(current_node, self.goal_node)
-
-                return self.update_current_node(robot_pos)
+                    return self.update_current_node(robot_pos)
         else:
             self.get_logger().warn("마커 인식 실패")
             return self.behavior["stop"]
@@ -222,13 +222,13 @@ class DriveRouterNode(Node):
             twist.angular.z = 0.0
         else:
             if behavior == 0:
-                twist.linear.x = 0.5
+                twist.linear.x = self.linear_x
                 twist.angular.z = -pid_output
             elif behavior == 1:
-                twist.linear.x = 0.3
+                twist.linear.x = min(0.3, self.linear_x)
                 twist.angular.z = max(min(0.8 - pid_output, 1.0), -1.0)
             elif behavior == 2:
-                twist.linear.x = 0.3
+                twist.linear.x = min(0.3, self.linear_x)
                 twist.angular.z = max(min(-0.8 - pid_output, 1.0), -1.0)
             elif behavior == 3:
                 twist.linear.x = 0.0
@@ -243,9 +243,8 @@ class DriveRouterNode(Node):
         cv2.waitKey(1)
 
     def yolo_callback(self, msg):
-        self.vehicle_id = msg.vehicle_id
-        self.offset = msg.offset
-        self.linear_x = msg.linear_x
+        self.offset = float(msg.offset)
+        self.linear_x = float(msg.linear_x)
         
 
     def destroy_node(self):
@@ -294,6 +293,7 @@ class DriveRouterNode(Node):
             self.vehicle_id = vehicle_id
             self.goal_node = data
             self.arrived = False
+            self.arrived_cnt = 0
             return "ok"
 
         # 조건에 해당하지 않음

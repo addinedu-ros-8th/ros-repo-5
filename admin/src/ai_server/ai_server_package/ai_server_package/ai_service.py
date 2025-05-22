@@ -303,7 +303,6 @@ class commandPublisher(Node):
         self.get_logger().info(f"linear_x = {linear_x}, offset = {offset}")
 
         msg = CommandInfo()
-        msg.vehicle_id = self.vehicle_id
         msg.offset = float(offset)
         msg.linear_x = float(linear_x)
         self.publisher.publish(msg)
