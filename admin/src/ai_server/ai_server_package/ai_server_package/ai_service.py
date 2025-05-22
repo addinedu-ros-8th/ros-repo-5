@@ -81,7 +81,7 @@ class commandPublisher(Node):
         timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.timer_callback)
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.yolo_seg_model = YOLO("/home/pepsi/dev_ws/ros-repo-5/admin/src/ai_server/ai_train/runs/segment/yolov8_epoch200/weights/best.pt").to(device)
+        self.yolo_seg_model = YOLO("admin/src/ai_server/ai_train/runs/segment/yolov8_epoch200/weights/best.pt").to(device)
         self.yolo_detect_model = YOLO("/home/pepsi/Downloads/yolo_detect.pt").to(device)
 
         self.prev_offset = 0.0
@@ -108,9 +108,9 @@ class commandPublisher(Node):
         if middle and border:
             target = ((middle[0] + border[0]) / 2, (middle[1] + border[1]) / 2)
         elif middle:
-            target = (middle[0] + 100, middle[1])
+            target = (middle[0] + 160, middle[1])
         elif border:
-            target = (border[0] - 100, border[1])
+            target = (border[0] - 160, border[1])
         elif dotted:
             target = dotted  # 점선 단독일 때 그대로 target
 

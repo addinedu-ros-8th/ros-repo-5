@@ -20,7 +20,7 @@ class DriveRouterNode(Node):
 
         self.goal_node = None
 
-        self.pid = PID(kp=0.008, ki=0.0, kd=0.001)
+        self.pid = PID(kp=0.010, ki=0.0, kd=0.04)
 
         self.G = nx.DiGraph()
         self.G.add_edges_from([
@@ -102,7 +102,7 @@ class DriveRouterNode(Node):
         self.linear_x = 0
         self.arrived = False
 
-        self.video = cv2.VideoCapture(3)
+        self.video = cv2.VideoCapture(2)
         time.sleep(2.0)
         self.timer = self.create_timer(0.1, self.timer_callback)
 
@@ -115,6 +115,7 @@ class DriveRouterNode(Node):
         self.d = np.load("admin/src/ai_server/ai_train/calib_images/distortion_coeffs.npy")
         self.marker_length = 0.03  # 3cm
         self.last_behavior = ""
+        self.arrived_cnt = 0
 
         self.get_logger().info("Drive Router Node Started")
 
@@ -149,8 +150,11 @@ class DriveRouterNode(Node):
         if np.linalg.norm(np.array(robot_pos) - np.array(goal_pos)) < 0.03:
             self.arrived = True
             self.last_behavior = "stop"
+
             # 택시 도착 이벤트 전송
-            self.manager.taxi_event_service(self.vehicle_id, 14, "destination")
+            if self.arrived_cnt > 1:
+                self.manager.taxi_event_service(self.vehicle_id, 14, "destination")
+
             return None
 
         if nearest_index < len(self.path) - 1:
