@@ -243,6 +243,7 @@ class DriveRouterNode(Node):
         cv2.waitKey(1)
 
     def yolo_callback(self, msg):
+        self.vehicle_id = msg.vehicle_id
         self.offset = float(msg.offset)
         self.linear_x = float(msg.linear_x)
         
