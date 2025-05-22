@@ -89,7 +89,7 @@ class commandPublisher(Node):
         self.lidar_ranges = None
         self.angle_increment = None
         self.angle_min = None
-        self.base_speed = 0.2
+        self.base_speed = 0.5
         self.stop_flag = False
 
         self.video_sender = VideoSender("192.168.0.134", 9999)
@@ -183,8 +183,10 @@ class commandPublisher(Node):
         stopline_detected = False
         stopline_y_threshold = frame.shape[0] * 0.7
 
-        results = self.yolo_detect_model(frame, conf=0.6, verbose=False)
+        results = self.yolo_detect_model(frame)
         for result in results:
+            self.base_speed = 0.5
+            
             boxes = result.boxes
             for box in boxes:
                 cls = int(box.cls[0])
@@ -232,7 +234,7 @@ class commandPublisher(Node):
                                 self.get_logger().info('Stopline detected')
                                 break
                         else:
-                            stopline_detected = True
+                            self.stop_flag = True
                             self.get_logger().info(f'{class_name} detected')
                             break
 
@@ -241,10 +243,9 @@ class commandPublisher(Node):
                         self.stop_flag = True
                         self.get_logger().info(f'Stopping robot: {class_name} with stopline detected')
 
-                 # 횡단보도 감지: 잠깐 정지 후 이동
                 elif class_name == 'crosswalk':
                     self.stop_flag = False
-                    self.base_speed = 0.1
+                    self.base_speed = 0.3
                     self.get_logger().info('crosswalk detected')
 
                 # 보행자 또는 핑키: 50m 이내 정지
@@ -255,21 +256,22 @@ class commandPublisher(Node):
                 # 파란불 감지 시 이동
                 elif class_name == 'greenlight':
                     self.stop_flag = False
+                    self.base_speed = 0.5
                     self.get_logger().info('green light detected')
                 
                 # 속도 제한 표지판
                 elif class_name == 'speedlimit_30':
                     self.stop_flag = False
-                    self.base_speed = 0.1
+                    self.base_speed = 0.3
                     self.get_logger().info('speed limit 30 detected')
                 elif class_name == 'speedlimit_60':
                     self.stop_flag = False
-                    self.base_speed = 0.2
+                    self.base_speed = 0.5
                     self.get_logger().info('speed limit 60 detected')
 
                 else:
                     self.stop_flag = False
-                    self.base_speed = 0.2
+                    self.base_speed = 0.5
 
         
         linear_x = 0.0 if self.stop_flag else self.base_speed
@@ -308,7 +310,7 @@ class commandPublisher(Node):
         msg.linear_x = float(linear_x)
         self.publisher.publish(msg)
 
-        cv2.imshow('frame', annotate_frame)
+        cv2.imshow(f'vehicle_{self.vehicle_id}', annotate_frame)
         cv2.waitKey(1)
 
     def lidar_callback(self, msg):
