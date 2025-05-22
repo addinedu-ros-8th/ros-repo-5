@@ -34,7 +34,7 @@ class PinkyLocation:
 
                 print(f"ID {ids[i][0]} | X: {robot_pos[0]} | Y: {robot_pos[1]}")
 
-                self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
+                self.manager.set_location(ids[i][0], robot_pos[0], robot_pos[1])
 
                 cv2.aruco.drawDetectedMarkers(frame, corners)
                 cv2.drawFrameAxes(frame, self.k, self.d, rvec, tvec, self.marker_length * 0.5)
