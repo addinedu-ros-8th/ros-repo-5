@@ -52,7 +52,6 @@ class PinkyLocation:
 
             output = self.pose_estimation(frame)
 
-            cv2.imshow('Aruco Marker', output)
             if cv2.waitKey(1) == 27:
                 break
         
