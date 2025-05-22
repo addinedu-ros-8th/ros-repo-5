@@ -97,23 +97,13 @@ class DriveRouterNode(Node):
         self.cmd_vel_pub_pinky1 = self.create_publisher(Twist, '/taxi1/cmd_vel', qos_profile)
         self.cmd_vel_pub_pinky2 = self.create_publisher(Twist, '/taxi2/cmd_vel', qos_profile)
 
-        self.vehicle_id = None
+        self.vehicle_id = 0
         self.offset = 0
         self.linear_x = 0
         self.arrived = False
 
-        self.video = cv2.VideoCapture(2)
-        time.sleep(2.0)
         self.timer = self.create_timer(0.1, self.timer_callback)
 
-        ARUCO_DICT = {
-            "DICT_4X4_100": cv2.aruco.DICT_4X4_100
-        }
-
-        self.aruco_dict_type = ARUCO_DICT["DICT_4X4_100"]
-        self.k = np.load("admin/src/ai_server/ai_train/calib_images/camera_matrix.npy")
-        self.d = np.load("admin/src/ai_server/ai_train/calib_images/distortion_coeffs.npy")
-        self.marker_length = 0.03  # 3cm
         self.last_behavior = ""
         self.arrived_cnt = 0
 
@@ -167,50 +157,35 @@ class DriveRouterNode(Node):
 
         return self.last_behavior
 
+    def get_behavior(self):
+        x, y = self.manager.get_location(self.vehicle_id)
 
-    def pose_estimation(self, frame):
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        aruco_dict = cv2.aruco.getPredefinedDictionary(self.aruco_dict_type)
-        detector = cv2.aruco.ArucoDetector(aruco_dict, cv2.aruco.DetectorParameters())
-        corners, ids, _ = detector.detectMarkers(gray)
+        if x != 0 and y != 0:
+            if self.goal_node not in self.marker_positions:
+                self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
+                self.arrived = True
+                return self.behavior["stop"]
+            
+            robot_pos = (x, y)
 
-        if ids is not None and len(corners) > 0:
-            for i in range(len(ids)):
-                rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], self.marker_length, self.k, self.d)
-                pos = tvec[0][0]
-                x, y = pos[0], pos[1]
-                robot_pos = (round(self.sp.low_pass_filter(x), 3), round(self.sp.low_pass_filter(y), 3))
-                self.manager.set_location(self.vehicle_id, robot_pos[0], robot_pos[1])
+            # 최초 경로 설정
+            if self.path is None or self.goal_node != self.path[-1]:
+                current_node = self.find_nearest_node(robot_pos)
+                self.set_goal_path(current_node, self.goal_node)
 
-                if self.goal_node is None:
-                    self.get_logger().info("대기중")
-                    return
-                
-                if int(ids[i][0] != self.vehicle_id):
-                    if self.goal_node not in self.marker_positions:
-                        self.get_logger().error(f"유효하지 않은 goal_node: {self.goal_node}")
-                        self.arrived = True
-                        return self.behavior["stop"]
-
-                    # 최초 경로 설정
-                    if self.path is None or self.goal_node != self.path[-1]:
-                        current_node = self.find_nearest_node(robot_pos)
-                        self.set_goal_path(current_node, self.goal_node)
-
-                    return self.update_current_node(robot_pos)
+            return self.update_current_node(robot_pos)
+        
         else:
-            self.get_logger().warn("마커 인식 실패")
+            self.get_logger().warn("좌표값이 잘못되었습니다.")
             return self.behavior["stop"]
-
-        return self.last_behavior
     
 
     def timer_callback(self):     
-        ret, frame = self.video.read()
-        if not ret:
+        if self.goal_node is None:
+            self.get_logger().info("대기중")
             return
-
-        behavior = self.pose_estimation(frame)
+        
+        behavior = self.get_behavior()
         self.get_logger().info(f"behavior: {behavior}")
 
         pid_output = self.pid.compute(self.offset)
@@ -243,7 +218,7 @@ class DriveRouterNode(Node):
         cv2.waitKey(1)
 
     def yolo_callback(self, msg):
-        self.vehicle_id = msg.vehicle_id
+        self.vehicle_id = int(msg.vehicle_id)
         self.offset = float(msg.offset)
         self.linear_x = float(msg.linear_x)
         
@@ -253,7 +228,6 @@ class DriveRouterNode(Node):
         cv2.destroyAllWindows()
         super().destroy_node()
     
-
     def send_command(self, vehicle_id, event_type):
         client = self.create_client(TaxiEvent, '/set_event_state')
         if not client.wait_for_service(timeout_sec=2.0):
