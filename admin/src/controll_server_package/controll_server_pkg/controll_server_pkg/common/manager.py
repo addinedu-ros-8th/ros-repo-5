@@ -55,11 +55,17 @@ class ServiceManager:
         else:
             print(f"🚫 존재하지 않는 택시 ID: {vehicle_id}")
 
-
-
     # 🧠 택시 객체 참조 메서드
     def get_taxi(self, vehicle_id):
         return self.taxis.get(vehicle_id)
+
+    def get_location(self, vehicle_id):
+        taxi = self.taxis.get(vehicle_id)
+        if taxi:
+            return taxi.location
+        else:
+            print(f"🚫 존재하지 않는 택시 ID: {vehicle_id}")
+            return (0.0, 0.0)
 
     # 🔁 모든 모듈에 메시지 브로드캐스트
     def broadcast(self, message):
