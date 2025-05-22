@@ -20,7 +20,7 @@ class DriveRouterNode(Node):
 
         self.goal_node = None
 
-        self.pid = PID(kp=0.010, ki=0.0, kd=0.04)
+        self.pid = PID(kp=0.012, ki=0.0, kd=0.03)
 
         self.G = nx.DiGraph()
         self.G.add_edges_from([
@@ -87,7 +87,6 @@ class DriveRouterNode(Node):
             ('D', 'C'): 'forward',
         }
 
-        self.sp = SignalProcessor(window_size=5, alpha=0.3)
         self.behavior = {"forward": 0, "left": 1, "right": 2, 'stop': 3}
         self.path = None
         self.current_index = 0
@@ -138,12 +137,14 @@ class DriveRouterNode(Node):
         # 목표에 가까워지면 다음 노드로 이동
         goal_pos = self.marker_positions[self.path[-1]]
         if np.linalg.norm(np.array(robot_pos) - np.array(goal_pos)) < 0.03:
+            self.get_logger().info(f"도착: {self.path[-1]}")
             self.arrived = True
             self.last_behavior = "stop"
 
             # 택시 도착 이벤트 전송
-            if self.arrived_cnt > 1:
+            if self.arrived_cnt == 0:
                 self.manager.taxi_event_service(self.vehicle_id, 14, "destination")
+                self.arrived_cnt += 1
 
             return None
 

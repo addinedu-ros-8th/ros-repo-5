@@ -136,7 +136,7 @@ class TaxiEventServiceNode(Node):
             self.send_to_pi(vehicle_id, 8)
             return "ok"
 
-        elif event_type == 14 and data == "destination" and taxi.state == "drive":
+        elif event_type == 14 and data == "destination" and taxi.state == "driving":
             taxi.state = "landing"
             self.send_to_pi(vehicle_id, 8)
             self.send_to_pi(vehicle_id, 10)

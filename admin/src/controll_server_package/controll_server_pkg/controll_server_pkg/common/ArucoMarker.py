@@ -13,6 +13,7 @@ class PinkyLocation:
             "DICT_4X4_100": cv2.aruco.DICT_4X4_100
         }
 
+        self.sp = SignalProcessor(window_size=5, alpha=0.3)
         self.aruco_dict_type = ARUCO_DICT["DICT_4X4_100"]
         self.k = np.load("admin/src/ai_server/ai_train/calib_images/camera_matrix.npy")
         self.d = np.load("admin/src/ai_server/ai_train/calib_images/distortion_coeffs.npy")
@@ -44,7 +45,7 @@ class PinkyLocation:
 
     
     def update(self):
-        cap = cv2.VideoCapture(2)
+        cap = cv2.VideoCapture(0)
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
