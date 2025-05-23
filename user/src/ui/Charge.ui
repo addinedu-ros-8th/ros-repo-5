@@ -75,7 +75,7 @@
         </property>
         <property name="styleSheet">
          <string notr="true">QLineEdit {
-    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/logo.png);
+    background-image: url(data/icon/logo.png);
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover; 
