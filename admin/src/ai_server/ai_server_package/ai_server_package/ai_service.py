@@ -92,7 +92,7 @@ class commandPublisher(Node):
         self.base_speed = 0.5
         self.stop_flag = False
 
-        self.video_sender = VideoSender("192.168.0.134", 9999)
+        self.video_sender = VideoSender("192.168.0.134", 9001)
 
 
     def get_centroid_from_mask(self, roi_top, mask):
@@ -108,11 +108,11 @@ class commandPublisher(Node):
         if middle and border:
             target = ((middle[0] + border[0]) / 2, (middle[1] + border[1]) / 2)
         elif middle:
-            target = (middle[0] + 160, middle[1])
+            target = (middle[0] + 180, middle[1])
         elif border:
-            target = (border[0] - 160, border[1])
+            target = (border[0] - 180, border[1])
         elif dotted:
-            target = dotted  # 점선 단독일 때 그대로 target
+            target = dotted
 
         if middle:
             cv2.circle(image, (int(middle[0]), int(middle[1])), 5, (0, 255, 255), -1)
@@ -185,10 +185,10 @@ class commandPublisher(Node):
 
         results = self.yolo_detect_model(frame)
         for result in results:
-            self.base_speed = 0.5
-            
             boxes = result.boxes
             for box in boxes:
+                detected_classes = []
+
                 cls = int(box.cls[0])
                 conf = float(box.conf[0])
                 class_name = result.names[cls]
@@ -230,47 +230,49 @@ class commandPublisher(Node):
                             # 정지선의 바운딩 박스 하단 y 좌표 확인
                             _, _, _, stopline_y2 = inner_box.xyxy[0]
                             if stopline_y2 > stopline_y_threshold:
-                                stopline_detected = True
-                                self.get_logger().info('Stopline detected')
+                                self.stop_flag = True
+                                self.get_logger().info(f'Stopping robot: {class_name} with stopline detected')
                                 break
-                        else:
-                            self.stop_flag = True
-                            self.get_logger().info(f'{class_name} detected')
-                            break
 
                     # 신호등 + 정지선 감지 시 정지
                     if stopline_detected:
                         self.stop_flag = True
                         self.get_logger().info(f'Stopping robot: {class_name} with stopline detected')
+                    else:
+                        self.stop_flag = True
+                        self.get_logger().info(f'{class_name} detected')
+                        break
 
-                elif class_name == 'crosswalk':
-                    self.stop_flag = False
+
+                elif class_name == 'crosswalk' and not self.stop_flag:
                     self.base_speed = 0.3
                     self.get_logger().info('crosswalk detected')
 
                 # 보행자 또는 핑키: 50m 이내 정지
-                elif class_name in ['pedestrian', 'pinky'] and distance < 20.0:
+                elif class_name in ['pedestrian', 'pinky'] and distance < 20.0 and self.stop_flag:
                     self.stop_flag = True
                     self.get_logger().info(f'Stopping robot: {class_name} within 20cm')
 
+                elif detected_classes not in ['pedestrian', 'pinky'] and self.stop_flag:
+                    self.stop_flag = False
+                    self.base_speed = 0.5
+
                 # 파란불 감지 시 이동
-                elif class_name == 'greenlight':
+                elif class_name == 'greenlight' and self.stop_flag:
                     self.stop_flag = False
                     self.base_speed = 0.5
                     self.get_logger().info('green light detected')
                 
                 # 속도 제한 표지판
-                elif class_name == 'speedlimit_30':
-                    self.stop_flag = False
+                elif class_name == 'speedlimit_30' and not self.stop_flag:
                     self.base_speed = 0.3
                     self.get_logger().info('speed limit 30 detected')
-                elif class_name == 'speedlimit_60':
-                    self.stop_flag = False
+
+                elif class_name == 'speedlimit_60' and not self.stop_flag:
                     self.base_speed = 0.5
                     self.get_logger().info('speed limit 60 detected')
 
                 else:
-                    self.stop_flag = False
                     self.base_speed = 0.5
 
         

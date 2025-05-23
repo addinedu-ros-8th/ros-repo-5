@@ -45,7 +45,7 @@ class PinkyLocation:
 
     
     def update(self):
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(3)
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
