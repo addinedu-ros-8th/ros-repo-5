@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1215</width>
-    <height>666</height>
+    <height>655</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -166,7 +166,7 @@
     <property name="styleSheet">
      <string notr="true">/* QGraphicsView에 배경 이미지 설정 */
 QGraphicsView#graphicsView_map {
-    background-image: url(/home/vit/dev_ws/project/ros-repo-5/admin/src/admin_gui/data/resized_new_map_image.png);
+    background-image: url(data/resized_new_map_image.png);
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
@@ -183,6 +183,12 @@ QGraphicsView#graphicsView_map {
       <width>221</width>
       <height>51</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
     <property name="text">
      <string>LOG</string>
@@ -215,6 +221,13 @@ QGraphicsView#graphicsView_map {
        <height>41</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
       <string>ADDIN TAXI</string>
      </property>
@@ -233,7 +246,7 @@ QGraphicsView#graphicsView_map {
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    background-image: url(/home/vit/dev_ws/project/ros-repo-5/admin/src/admin_gui/data/logo.png);
+    background-image: url(data/logo.png);
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover; 
@@ -242,6 +255,132 @@ QGraphicsView#graphicsView_map {
 }</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_2">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>130</y>
+      <width>81</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(Icon/addinedu_resized_transparent.png);
+    background-repeat: no-repeat;
+    background-position: center;
+	background-color: rgba(0, 0, 0, 0);
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_6">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>330</y>
+      <width>81</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(Icon/hotel_resized_transparent.png);
+    background-repeat: no-repeat;
+    background-position: center;
+	background-color: rgba(0, 0, 0, 0);
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_7">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>340</y>
+      <width>81</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(/home/lim/git/ros-repo-5/admin/src/admin_gui/Icon/stadium_resized_transparent.png);
+    background-repeat: no-repeat;
+    background-position: center;
+	background-color: rgba(0, 0, 0, 0);
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_3">
+    <property name="geometry">
+     <rect>
+      <x>880</x>
+      <y>130</y>
+      <width>81</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(Icon/witness_resized_transparent.png);
+    background-repeat: no-repeat;
+    background-position: center;
+	background-color: rgba(0, 0, 0, 0);
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_4">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>570</y>
+      <width>81</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(Icon/psychiatry_resized_transparent.png);
+    background-repeat: no-repeat;
+    background-position: center;
+	background-color: rgba(0, 0, 0, 0);
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_5">
+    <property name="geometry">
+     <rect>
+      <x>880</x>
+      <y>570</y>
+      <width>81</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(Icon/ophthalmology_resized_transparent.png);
+    background-repeat: no-repeat;
+    background-position: center;
+	background-color: rgba(0, 0, 0, 0);
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
    </widget>
   </widget>
  </widget>

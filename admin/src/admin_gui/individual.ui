@@ -73,7 +73,7 @@
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/logo.png);
+    background-image: url(data/logo.png);
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover; 
@@ -85,7 +85,7 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="LogBtn">
+    <widget class="QPushButton" name="undoBtn">
      <property name="geometry">
       <rect>
        <x>930</x>
@@ -101,8 +101,21 @@
        <bold>true</bold>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    background-color: #FFD43B;
+    color: black;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: none;
+    qproperty-icon: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/Undo.png); /* 이미지 경로 지정 */
+    qproperty-iconSize: 40px 40px;  /* 이미지 크기 설정 */
+    text-align: center;            /* 텍스트 가운데 정렬 */
+}</string>
+     </property>
      <property name="text">
-      <string>LOG</string>
+      <string/>
      </property>
     </widget>
     <widget class="QLabel" name="Vehicle_ID">
@@ -128,37 +141,6 @@
       <enum>Qt::AutoText</enum>
      </property>
     </widget>
-   </widget>
-   <widget class="QGraphicsView" name="graphicsView_map">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>60</y>
-      <width>521</width>
-      <height>351</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">/* QGraphicsView에 배경 이미지 설정 */
-QGraphicsView#graphicsView_map {
-    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/map/map.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    border: none;
-}
-</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="realtime_video">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>60</y>
-      <width>521</width>
-      <height>351</height>
-     </rect>
-    </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_3">
     <property name="geometry">
@@ -304,7 +286,7 @@ QGraphicsView#graphicsView_map {
 }</string>
     </property>
     <property name="text">
-     <string>                                                  Velicity</string>
+     <string>                                            Velicity</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_10">
@@ -465,6 +447,48 @@ QGraphicsView#graphicsView_map {
     </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="realtime_video">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>70</y>
+      <width>501</width>
+      <height>321</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="Map">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>60</y>
+      <width>521</width>
+      <height>341</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(data/map.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
