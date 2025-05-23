@@ -19,7 +19,7 @@ QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=fals
 class LoginWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/Login.ui"), self)
+        uic.loadUi(self.get_ui_path("ui/Login.ui"), self)
         self.LogIn.clicked.connect(self.login)
 
         # REST API 클라이언트 생성

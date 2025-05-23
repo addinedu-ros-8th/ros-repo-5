@@ -18,7 +18,7 @@ from PyQt6.QtCore import QLoggingCategory
 sys.stderr = open(os.devnull, 'w')
 # 모든 Qt 경고 메시지 차단
 QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
-from_class = uic.loadUiType("/home/lim/dev_ws/addintexi/UserGUI/ui/0_Main.ui")[0]
+from_class = uic.loadUiType("ui/0_Main.ui")[0]
 
 class MainWindow(QMainWindow, from_class):
     def __init__(self):
@@ -120,12 +120,12 @@ class MainWindow(QMainWindow, from_class):
 
             # JSON 요청 생성
             request_data = {
-                "start_x": start_x,
-                "start_y": start_y,
-                "dest_x": dest_x,
-                "dest_y": dest_y,
-                "passenger_count": selected_passenger_count,
-                "passenger_id": client_id
+                # "start_x": start_x,
+                # "start_y": start_y,
+                # "dest_x": dest_x,
+                # "dest_y": dest_y,
+                # "passenger_count": selected_passenger_count,
+                # "passenger_id": client_id
             }
 
             print(f"[DEBUG] 서버로 전송할 JSON: {request_data}")
@@ -157,28 +157,28 @@ class MainWindow(QMainWindow, from_class):
 
                 else:
                     print(f"[ERROR] 서버 오류 또는 응답 처리 문제: {response.get('message')}")
-                    # print("[ERROR] 디버깅 -> taxi_id =2.")
-                    # from call import CallWindow
-                    # taxi_id=2
-                    # UserSession.set_taxi_id(taxi_id)
-                    # self.call_window = CallWindow(
-                    #     self.icon_handler.start_icon.objectName(),
-                    #     self.icon_handler.destination_icon.objectName(),
-                    # )
-                    # self.call_window.show()
-                    # self.close()
+                    print("[ERROR] 디버깅 -> taxi_id =2.")
+                    from call import CallWindow
+                    taxi_id=2
+                    UserSession.set_taxi_id(taxi_id)
+                    self.call_window = CallWindow(
+                        self.icon_handler.start_icon.objectName(),
+                        self.icon_handler.destination_icon.objectName(),
+                    )
+                    self.call_window.show()
+                    self.close()
             else:
                 print("[ERROR] 서버 응답을 수신할 수 없습니다.")
-                # print("[ERROR] 디버깅 -> taxi_id =2.")
-                # from call import CallWindow
-                # taxi_id=2
-                # UserSession.set_taxi_id(taxi_id)
-                # self.call_window = CallWindow(
-                #     self.icon_handler.start_icon.objectName(),
-                #     self.icon_handler.destination_icon.objectName(),
-                # )
-                # self.call_window.show()
-                # self.close()
+                print("[ERROR] 디버깅 -> taxi_id =2.")
+                from call import CallWindow
+                taxi_id=2
+                UserSession.set_taxi_id(taxi_id)
+                self.call_window = CallWindow(
+                    self.icon_handler.start_icon.objectName(),
+                    self.icon_handler.destination_icon.objectName(),
+                )
+                self.call_window.show()
+                self.close()
         else:
             QMessageBox.warning(self, "에러", "출발지와 목적지를 선택해주세요.")
 

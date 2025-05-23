@@ -1,7 +1,7 @@
 import cv2
 
 # 이미지 파일 경로
-img_path = "/home/lim/git/ros-repo-5/admin/src/admin_gui/data/resized_new_map_image.png"  # 이미지 경로를 실제로 맞게 수정!
+img_path = "data/resized_new_map_image.png"  # 이미지 경로를 실제로 맞게 수정!
 
 # 이미지 읽기
 img = cv2.imread(img_path)

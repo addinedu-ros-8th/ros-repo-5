@@ -1,7 +1,7 @@
 import requests
 from UserSession import UserSession
 
-API_SERVER_IP = "192.168.1.3"
+API_SERVER_IP = "192.168.1.4"
 API_SERVER_PORT = 8000
 
 # # ----------------------------------------------

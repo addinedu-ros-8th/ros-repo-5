@@ -22,7 +22,7 @@ QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=fals
 class EndWindow(QMainWindow):
     def __init__(self, start_icon_name, destination_icon_name,mapper):
         super().__init__()
-        uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/4_end.ui"), self)
+        uic.loadUi(self.get_ui_path("4_end.ui"), self)
         self.ChargeBtn.clicked.connect(self.show_charge_page)
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
         self.CheckBtn.clicked.connect(self.send_landing_request)
@@ -64,7 +64,7 @@ class EndWindow(QMainWindow):
     def setup_pinky_image(self):
         # Map 위젯 위에 Pinky 설정
         self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
-        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+        pinky_pixmap = QPixmap("data/map_icon/pinky.png")
         
         # QPixmap 투명 배경 유지 (Alpha 채널 유지)
         self.pinky_image.setPixmap(pinky_pixmap)

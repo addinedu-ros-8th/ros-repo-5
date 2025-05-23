@@ -22,7 +22,7 @@ QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=fals
 class RidingWindow(QMainWindow):
     def __init__(self, start_icon_name, destination_icon_name,mapper):
         super().__init__()
-        uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/2_riding.ui"), self)
+        uic.loadUi(self.get_ui_path("2_riding.ui"), self)
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
 
         # REST API 클라이언트 생성
@@ -67,7 +67,7 @@ class RidingWindow(QMainWindow):
     def setup_pinky_image(self):
         # Map 위젯 위에 Pinky 설정
         self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
-        pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
+        pinky_pixmap = QPixmap("data/map_icon/pinky.png")
         
         # QPixmap 투명 배경 유지 (Alpha 채널 유지)
         self.pinky_image.setPixmap(pinky_pixmap)
