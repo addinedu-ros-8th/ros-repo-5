@@ -314,6 +314,45 @@ class RestServer:
             return jsonify({
                 "status": status
             })
+        
+        @self.app.route('/driving_log', methods=['POST'])
+        def get_driving_log():
+            start_date = request.json.get('start_date')
+            end_date = request.json.get('end_date')
+            vehicle_id = request.json.get('vehicle_id')  # optional
+
+            if not start_date or not end_date:
+                return jsonify({"status": "error", "message": "start_date and end_date are required"}), 400
+
+            db = Database()
+
+            try:
+                query = """
+                    SELECT v.vehicle_number, e.event_reason, e.event_action, e.create_date
+                    FROM EventLog e
+                    JOIN Vehicle v ON e.vehicle_id = v.vehicle_id
+                    WHERE DATE(e.create_date) BETWEEN %s AND %s
+                """
+                params = [start_date, end_date]
+
+                if vehicle_id:
+                    query += " AND e.vehicle_id = %s"
+                    params.append(vehicle_id)
+
+                results = db.execute_select(query, tuple(params))
+
+                return jsonify({
+                    "status": "ok",
+                    "log_info": results if results else []
+                })
+
+            except Exception as e:
+                return jsonify({
+                    "status": "error",
+                    "message": str(e)
+                }), 500
+
+
 
     def run(self):
         print("🚀 REST 서버 실행 시작")
