@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>593</width>
-    <height>854</height>
+    <width>585</width>
+    <height>908</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -544,27 +544,6 @@ padding: 5px 10px;
     </property>
     <property name="text">
      <string>  - &gt;</string>
-    </property>
-   </widget>
-   <widget class="QToolButton" name="Debug">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>630</y>
-      <width>211</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: #FFD43B;
-color: black;
-font-weight: bold;
-border-radius: 5px;
-padding: 5px 10px;
-</string>
-    </property>
-    <property name="text">
-     <string>디버그</string>
     </property>
    </widget>
   </widget>
