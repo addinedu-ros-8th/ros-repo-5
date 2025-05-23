@@ -13,6 +13,7 @@ from riding import *
 from LeftMoney import LeftMoneyManager
 from LeftMoney import * 
 from Icon_coordinates import *
+from PyQt6.QtCore import QPropertyAnimation, QPoint
 
 # stderr (경고 메시지) 출력 차단
 sys.stderr = open(os.devnull, 'w')
@@ -23,7 +24,7 @@ QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=fals
 class CallWindow(QMainWindow):
     def __init__(self, start_icon_name, destination_icon_name):
         super().__init__()
-        uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/1_call.ui"), self)
+        uic.loadUi(self.get_ui_path("/home/lim/git/ros-repo-5/user/src/ui/1_call.ui"), self)
         
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()
@@ -71,11 +72,12 @@ class CallWindow(QMainWindow):
         self.icon_handler.set_fixed_icons(start_icon_name, destination_icon_name)
         
         # 출발지/목적지 이름을 상태로 저장
+
+        self.setup_pinky_image()
+        self.pinky_image.setVisible(False)
         self.start_icon = start_icon_name
         self.destination_icon = destination_icon_name
         self.set_location_text(self.start_icon, self.destination_icon)
-
-        self.setup_pinky_image()
 
         vehicle_id = UserSession.get_taxi_id()
         if vehicle_id is None:
@@ -89,22 +91,16 @@ class CallWindow(QMainWindow):
         self.pinky.start_reached.connect(self.switch_to_riding_window)
         self.pinky.start()
         self.reached_shown = False 
-
-        # 디버그 버튼 설정
-        self.Debug.clicked.connect(self.debug_button_clicked)
-
-        # 디버그 클릭 횟수
-        self.debug_click_count = 0
-
     
     def setup_pinky_image(self):
+        
         # Map 위젯 위에 Pinky 설정
         self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
         pinky_pixmap = QPixmap("/home/lim/dev_ws/addintexi/UserGUI/data/map_icon/pinky.png")
         
         # QPixmap 투명 배경 유지 (Alpha 채널 유지)
         self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
+        self.pinky_image.setGeometry(0,0,60, 60)  # 초기 크기와 위치 설정
         self.pinky_image.setScaledContents(True)
         self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
         
@@ -135,29 +131,28 @@ class CallWindow(QMainWindow):
     # 디버깅용 
     # ----------------------------------------------------------------
     
-    
-    def debug_button_clicked(self):
-        self.debug_click_count += 1
-
-        if self.debug_click_count == 2:
-            
-            start_icon_name = self.icon_handler.start_icon.objectName() if self.icon_handler.start_icon else "Unknown"
-            destination_icon_name = self.icon_handler.destination_icon.objectName() if self.icon_handler.destination_icon else "Unknown"
-            # call.py 페이지로 이동 -> 디버깅용 코드
-            from riding import RidingWindow
-            self.riding_window = RidingWindow(
-                start_icon_name=start_icon_name,
-                destination_icon_name=destination_icon_name,
-                mapper=self.mapper 
-            )
-            self.riding_window.show()
-            self.close()
+    def animate_pinky_move(self, x, y):
+        end_pos = QPoint(int(x - 30), int(y - 30))
+        self.pinky_image.setVisible(True)
+        # 이미 이전 애니메이션이 있으면 중
+        if hasattr(self, 'pinky_anim') and self.pinky_anim is not None:
+            self.pinky_anim.stop()
+        self.pinky_anim = QPropertyAnimation(self.pinky_image, b"pos", self)
+        self.pinky_anim.setDuration(300)   # 이동 시간(ms) - 0.3초
+        self.pinky_anim.setStartValue(self.pinky_image.pos())
+        self.pinky_anim.setEndValue(end_pos)
+        self.pinky_anim.start()
           
 
     #---------------------------------------------------------------------------
     def update_pinky_position(self, x, y):
-        print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
-        self.pinky_image.move(int(x - 25), int(y - 25))
+        if not self.pinky_image.isVisible():
+            self.pinky_image.move(int(x - 30), int(y - 30))
+            self.pinky_image.setVisible(True)
+        else:
+            print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+            # self.pinky_image.move(int(x - 30), int(y - 30))
+            self.animate_pinky_move(x, y)
 
 
     def switch_to_riding_window(self):

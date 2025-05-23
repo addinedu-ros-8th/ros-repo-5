@@ -73,66 +73,66 @@ class PinkyManager(QObject):
     def connect_to_server(self):
 
         # 디버깅-----------------
-        while self.running:
-            try:
-                self.fallback_to_status_api()
-            except Exception as e:
-                print(f"[PinkyManager] fallback 호출 중 예외: {e}")
-                
-            time.sleep(2)
-        # ----------------------
-
         # while self.running:
         #     try:
-        #         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #         self.socket.connect((self.host, self.port))
-        #         print("[PinkyManager] 서버에 연결됨")
-        #         vehicle_info = {"vehicle_id": self.vehicle_id}
-        #         self.socket.sendall(json.dumps(vehicle_info).encode())
-        #         print(f"[PinkyManager] vehicle_id 전송 완료: {vehicle_info}")
-
-        #         while self.running:
-        #             data = self.socket.recv(4096).decode().strip()
-        #             if not data:
-        #                 print("[PinkyManager] 서버 연결 끊김")
-        #                 break
-        #             try:
-        #                 message = json.loads(data)
-        #                 self.update_pinky(message)
-        #             except json.JSONDecodeError:
-        #                 print(f"[PinkyManager] JSON 파싱 실패: {data}")
-
+        #         self.fallback_to_status_api()
         #     except Exception as e:
-        #         print(f"[PinkyManager] 예외 발생: {e}")
-        #         time.sleep(3)
+        #         print(f"[PinkyManager] fallback 호출 중 예외: {e}")
+                
+        #     time.sleep(2)
+        # ----------------------
+
+        while self.running:
+            try:
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket.connect((self.host, self.port))
+                print("[PinkyManager] 서버에 연결됨")
+                vehicle_info = {"vehicle_id": self.vehicle_id}
+                self.socket.sendall(json.dumps(vehicle_info).encode())
+                print(f"[PinkyManager] vehicle_id 전송 완료: {vehicle_info}")
+
+                while self.running:
+                    data = self.socket.recv(4096).decode().strip()
+                    if not data:
+                        print("[PinkyManager] 서버 연결 끊김")
+                        break
+                    try:
+                        message = json.loads(data)
+                        self.update_pinky(message)
+                    except json.JSONDecodeError:
+                        print(f"[PinkyManager] JSON 파싱 실패: {data}")
+
+            except Exception as e:
+                print(f"[PinkyManager] 예외 발생: {e}")
+                time.sleep(3)
 
     # 디버깅용 fallback
-    def fallback_to_status_api(self):
-        try:
-            response = requests.get("http://192.168.1.3:8000/status_taxis", timeout=3)
-            if response.status_code == 200:
-                data = response.json()
-                taxis = data.get("taxis", {})
-                taxi_data = taxis.get(str(self.vehicle_id), None)
-                if taxi_data:
-                    print(f"[DEBUG] fallback 데이터 수신됨: {taxi_data}")
-                    self.update_pinky(taxi_data)
-                else:
-                    print(f"[DEBUG] 해당 vehicle_id({self.vehicle_id})에 대한 데이터가 없습니다.")
-            else:
-                print(f"[DEBUG] fallback 요청 실패: {response.status_code}")
-        except Exception as e:
-            print(f"[DEBUG] fallback API 호출 중 오류: {e}")
+    # def fallback_to_status_api(self):
+    #     try:
+    #         response = requests.get("http://192.168.1.3:8000/status_taxis", timeout=3)
+    #         if response.status_code == 200:
+    #             data = response.json()
+    #             taxis = data.get("taxis", {})
+    #             taxi_data = taxis.get(str(self.vehicle_id), None)
+    #             if taxi_data:
+    #                 print(f"[DEBUG] fallback 데이터 수신됨: {taxi_data}")
+    #                 self.update_pinky(taxi_data)
+    #             else:
+    #                 print(f"[DEBUG] 해당 vehicle_id({self.vehicle_id})에 대한 데이터가 없습니다.")
+    #         else:
+    #             print(f"[DEBUG] fallback 요청 실패: {response.status_code}")
+    #     except Exception as e:
+    #         print(f"[DEBUG] fallback API 호출 중 오류: {e}")
 
-        print("[DEBUG] 서버 연결 실패 - 테스트용 가짜 좌표 사용")
-        dummy_data = {
-            "location": [0.200,  0.1200],
-            "start": [-0.015, -0.078],
-            "destination": [0.08, 0.069],
-            "battery": 85.0,
-            "state": "dispatch"
-        }
-        self.update_pinky(dummy_data)
+    #     print("[DEBUG] 서버 연결 실패 - 테스트용 가짜 좌표 사용")
+    #     dummy_data = {
+    #         "location": [0.200,  0.1200],
+    #         "start": [-0.015, -0.078],
+    #         "destination": [0.08, 0.069],
+    #         "battery": 85.0,
+    #         "state": "dispatch"
+    #     }
+    #     self.update_pinky(dummy_data)
 
     def update_pinky(self, message):
         real_x, real_y = message.get("location", [0.0, 0.0])

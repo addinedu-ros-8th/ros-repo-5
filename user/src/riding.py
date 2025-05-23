@@ -49,10 +49,12 @@ class RidingWindow(QMainWindow):
         self.icon_handler.lock_icons()
 
         # 핑키
+        self.setup_pinky_image()
+        self.pinky_image.setVisible(False)
         self.mapper = mapper
         self.pinky = PinkyManager.get_instance(mapper=mapper)
         self.pinky.position_updated.connect(self.update_pinky_position)
-        self.setup_pinky_image()
+
 
         
         
@@ -69,7 +71,7 @@ class RidingWindow(QMainWindow):
         
         # QPixmap 투명 배경 유지 (Alpha 채널 유지)
         self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0, 0, 50, 50)  # 초기 크기와 위치 설정
+        self.pinky_image.setGeometry(0,0,60, 60)  # 초기 크기와 위치 설정
         self.pinky_image.setScaledContents(True)
         self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
         
@@ -78,8 +80,9 @@ class RidingWindow(QMainWindow):
         self.pinky_image.raise_()  # 맨 앞에 위치
 
     def update_pinky_position(self, x, y):
+        self.pinky_image.setVisible(True)
         print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
-        self.pinky_image.move(int(x - 25), int(y - 25))
+        self.pinky_image.move(int(x - 30), int(y - 30))
     
     def send_boarding_request(self):
         vehicle_id = UserSession.get_taxi_id()
