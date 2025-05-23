@@ -91,7 +91,6 @@ class RidingWindow(QMainWindow):
             self.switch_to_driving_window()
         else:
             print(self,"[에러]연결불가-디버그")
-            self.switch_to_driving_window()
 
     def switch_to_driving_window(self):
         from driving import DrivingWindow

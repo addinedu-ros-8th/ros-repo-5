@@ -48,7 +48,7 @@ class PinkyManager(QObject):
         
 
         self.running = False
-        self.host = "192.168.1.4"
+        self.host = "192.168.1.3"
         self.port = 9000
 
     def start(self):

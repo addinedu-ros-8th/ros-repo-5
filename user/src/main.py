@@ -114,18 +114,17 @@ class MainWindow(QMainWindow, from_class):
             dest_x, dest_y = destination_coords
             client_id = UserSession.get_current_user()
             if not client_id: 
-                QMessageBox.warning(self,"에러","비로그인-디버깅처리")
                 #디버깅
                 client_id ="1"
 
             # JSON 요청 생성
             request_data = {
-                # "start_x": start_x,
-                # "start_y": start_y,
-                # "dest_x": dest_x,
-                # "dest_y": dest_y,
-                # "passenger_count": selected_passenger_count,
-                # "passenger_id": client_id
+                "start_x": start_x,
+                "start_y": start_y,
+                "dest_x": dest_x,
+                "dest_y": dest_y,
+                "passenger_count": selected_passenger_count,
+                "passenger_id": client_id
             }
 
             print(f"[DEBUG] 서버로 전송할 JSON: {request_data}")

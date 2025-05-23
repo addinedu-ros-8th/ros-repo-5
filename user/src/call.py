@@ -150,7 +150,7 @@ class CallWindow(QMainWindow):
             self.pinky_image.move(int(x - 30), int(y - 30))
             self.pinky_image.setVisible(True)
         else:
-            print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+            print( x, y)
             # self.pinky_image.move(int(x - 30), int(y - 30))
             self.animate_pinky_move(x, y)
 
