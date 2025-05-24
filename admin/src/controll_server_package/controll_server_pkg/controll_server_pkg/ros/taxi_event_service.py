@@ -4,7 +4,7 @@ from controll_server_package_msgs.srv import TaxiEvent
 from controll_server_pkg.common.manager import ServiceManager
 from controll_server_pkg.model.taxi import Taxi
 from controll_server_pkg.common.database import Database
-from time import sleep
+import time  
 
 class TaxiEventServiceNode(Node):
     """
@@ -106,6 +106,13 @@ class TaxiEventServiceNode(Node):
             self.get_logger().warn(f"🚫 존재하지 않는 택시 ID: {vehicle_id}")
             return f"Taxi {vehicle_id} not found"
 
+        if event_type == 4:
+            self.send_to_pi(vehicle_id, 4)
+            return "ok"
+        elif event_type == 4:
+            self.send_to_pi(vehicle_id, 4)
+            return "ok"
+
         if event_type == 11 and taxi.state == "boarding":
             if taxi.passenger_state == "승차":
                 self.send_to_pi(vehicle_id, event_type)
@@ -138,8 +145,10 @@ class TaxiEventServiceNode(Node):
 
                     if taxi.battery < 60:
                         taxi.state = "charging"
+                        self.send_to_pi(vehicle_id, 5)
                     else:
-                        "ready"
+                        taxi.state = "ready"
+                        self.send_to_pi(vehicle_id, 3)
                     self.send_to_pi(vehicle_id, 9)
 
                 return "ok"
