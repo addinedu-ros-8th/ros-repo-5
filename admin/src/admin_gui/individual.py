@@ -23,15 +23,17 @@ PORT_MAP= {
     2: 9000
 }
 
-ICON_NODE_NAMES = {
-    (0.262, 0.161): "애드인에듀 학원",
-    (0.17, 0.217): "기억할게!술집",
-    (-0.015, -0.078): "내 거친 생각 정신과",
-    (-0.045, 0.021): "불안한 눈빛 안과",
-    (0.08, 0.069): "신라호텔",
-    (0.1, 0.097): "월드컵 경기장",
-    (0.0, 0.0): "준비중"
+COORD_TO_NAME = {
+    (0.213, 0.112): "애드인에듀 학원",
+    (0.17, 0.17): "기억할게!술집",
+    (-0.026, -0.026): "내 거친 생각 정신과",
+    (-0.069, 0.015): "불안한 눈빛 안과",
+    (0.77, 0.065): "신라호텔",
+    (0.068, 0.071): "월드컵 경기장",
+    (0.0, 0.0) : "대기 중"
 }
+
+
 
 # PORT = 9999
 
@@ -163,7 +165,6 @@ class IndividualWindow(QMainWindow):
         state_kor = self.STATE_KOR_MAP.get(msg.state, msg.state)
         styled = lambda text: f"<span style=\"font-size:16pt; font-weight:600;\">{text}</span>"
 
-        node_name = self.find_nearest_node(px, py)
 
 
         self.condition.setText(state_kor)
@@ -172,10 +173,9 @@ class IndividualWindow(QMainWindow):
         self.passenger.setText(styled(f"탑승자: {msg.passenger_count}명"))
         start_x, start_y = msg.start
         dest_x, dest_y = msg.destination
-        
-        start_name = self.find_nearest_node(start_x, start_y)
-        dest_name = self.find_nearest_node(dest_x, dest_y)
-        
+       
+        start_name = COORD_TO_NAME.get(tuple(msg.start), "알 수 없음")
+        dest_name = COORD_TO_NAME.get(tuple(msg.destination), "알 수 없음")
         self.record_text.setText(f"출발지: {start_name} / 목적지: {dest_name}")
 
     def update_battery_visual(self, percent: float):
@@ -224,17 +224,6 @@ class IndividualWindow(QMainWindow):
             self.pinky_image.setVisible(True)
         else:
             self.pinky_image.move(int(x - 30), int(y - 30))
-
-    def find_nearest_node(self, px, py):
-        min_dist = float("inf")
-        closest_name = "?"
-        for (wx, wy), name in ICON_NODE_NAMES.items():
-            mapped_x, mapped_y = self.mapper.world_to_pixel(wx, wy)
-            dist = (mapped_x - px) ** 2 + (mapped_y - py) ** 2
-            if dist < min_dist:
-                min_dist = dist
-                closest_name = name
-        return closest_name
 
 
 

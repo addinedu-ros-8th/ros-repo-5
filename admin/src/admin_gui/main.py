@@ -16,14 +16,7 @@ from Icon_coordinates_for_main import CoordinateMapper
 from ros_manager import init_ros, update_callback, is_ros_initialized
 
 
-ICON_NODE_NAMES = {
-    (0.262, 0.161): "애드인에듀 학원",
-    (0.17, 0.217): "기억할게!술집",
-    (-0.015, -0.078): "내 거친 생각 정신과",
-    (-0.045, 0.021): "불안한 눈빛 안과",
-    (0.08, 0.069): "신라호텔",
-    (0.1, 0.097): "월드컵 경기장"
-}
+
 
 
 
@@ -146,8 +139,6 @@ class AdminMainWindow(QMainWindow):
         state_kor = self.STATE_KOR_MAP.get(msg.state, msg.state)
         styled = lambda text: f'<span style="font-size:16pt; font-weight:600;">{text}</span>'
 
-        node_name = self.find_nearest_node(px, py)
-
         if vehicle_id == 1:
             self.label_pinky1_status.setText(styled(f"운행 상태: {state_kor}"))
             self.label_pinky1_battery.setText(styled(f"배터리: {msg.battery:.0f}%"))
@@ -226,17 +217,6 @@ class AdminMainWindow(QMainWindow):
         if not item.isVisible():
             item.setVisible(True)
     
-    
-    def find_nearest_node(self, px, py):
-        min_dist = float("inf")
-        closest_name = "?"
-        for (wx, wy), name in ICON_NODE_NAMES.items():
-            mapped_x, mapped_y = self.mapper.world_to_pixel(wx, wy)
-            dist = (mapped_x - px) ** 2 + (mapped_y - py) ** 2
-            if dist < min_dist:
-                min_dist = dist
-                closest_name = name
-        return closest_name
     
             
     def update_taxi_summary(self):
