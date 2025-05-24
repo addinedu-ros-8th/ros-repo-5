@@ -92,7 +92,7 @@ class commandPublisher(Node):
         self.base_speed = 0.5
         self.stop_flag = False
 
-        self.video_sender = VideoSender("192.168.0.134", 9001)
+        self.video_sender = VideoSender("192.168.1.8", 9001)
 
 
     def get_centroid_from_mask(self, roi_top, mask):
@@ -108,9 +108,9 @@ class commandPublisher(Node):
         if middle and border:
             target = ((middle[0] + border[0]) / 2, (middle[1] + border[1]) / 2)
         elif middle:
-            target = (middle[0] + 180, middle[1])
+            target = (middle[0] + 160, middle[1])
         elif border:
-            target = (border[0] - 180, border[1])
+            target = (border[0] - 160, border[1])
         elif dotted:
             target = dotted
 
@@ -135,7 +135,7 @@ class commandPublisher(Node):
         roi_top = int(h * 2 / 3)
         roi_frame = frame[roi_top:h, 0:w]
 
-        results = self.yolo_seg_model(roi_frame, conf=0.8, verbose=False)
+        results = self.yolo_seg_model(roi_frame, conf=0.5, verbose=False)
         annotated_frame = frame.copy()
 
         masks = results[0].masks.data.cpu().numpy() if results[0].masks is not None else None 
@@ -163,7 +163,7 @@ class commandPublisher(Node):
             elif cls == 2:
                 dotted_centroid = centroid
 
-        # 🔸 시각화 및 offset 계산
+        # 시각화 및 offset 계산
         annotated_frame, target = self.draw_target_visualization(
             annotated_frame, w, h, middle_centroid, border_centroid, dotted_centroid
         )
@@ -183,7 +183,7 @@ class commandPublisher(Node):
         stopline_detected = False
         stopline_y_threshold = frame.shape[0] * 0.7
 
-        results = self.yolo_detect_model(frame)
+        results = self.yolo_detect_model(frame, conf=0.5, verbose=False)
         for result in results:
             boxes = result.boxes
             for box in boxes:
@@ -304,13 +304,13 @@ class commandPublisher(Node):
 
         annotate_frame, offset = self.lane_keeping(detect_frame)
 
-        self.get_logger().info(f"linear_x = {linear_x}, offset = {offset}")
-
         msg = CommandInfo()
         msg.vehicle_id = int(self.vehicle_id)
-        msg.offset = float(offset)
+        msg.offset = 0.0 if self.stop_flag else float(offset)
         msg.linear_x = float(linear_x)
         self.publisher.publish(msg)
+
+        self.get_logger().info(f"linear_x = {msg.linear_x}, offset = {msg.offset}")
 
         cv2.imshow(f'vehicle_{self.vehicle_id}', annotate_frame)
         cv2.waitKey(1)
