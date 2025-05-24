@@ -26,6 +26,9 @@
     <layout class="QHBoxLayout" name="layout_stats">
      <item>
       <widget class="QLabel" name="label_totalTaxi">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <property name="text">
         <string>전체 택시 수: 0</string>
        </property>
@@ -63,6 +66,15 @@
       <height>251</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QGroupBox {
+    background-color: #6A5B8E; /* 톤다운된 연보라색 */
+    border: 1px solid #888;
+    border-radius: 5px;
+    margin-top: 10px;
+    padding: 5px;
+}</string>
+    </property>
     <property name="title">
      <string>TAXI 1</string>
     </property>
@@ -71,13 +83,6 @@
       <widget class="QLabel" name="label_pinky1_status">
        <property name="text">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;운행 상태: 대기&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_pinky1_speed">
-       <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;속도: 0 cm/s&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -113,6 +118,15 @@
       <height>251</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QGroupBox {
+    background-color: #4A6D8C; /* 톤다운된 연보라색 */
+    border: 1px solid #888;
+    border-radius: 5px;
+    margin-top: 10px;
+    padding: 5px;
+}</string>
+    </property>
     <property name="title">
      <string>TAXI 2</string>
     </property>
@@ -121,13 +135,6 @@
       <widget class="QLabel" name="label_pinky2_status">
        <property name="text">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;운행 상태: 대기&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_pinky2_speed">
-       <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;속도: 0 cm/s&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>

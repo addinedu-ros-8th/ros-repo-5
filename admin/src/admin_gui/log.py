@@ -2,23 +2,24 @@ import sys
 import os
 import numpy as np
 import threading
-from PyQt6.QtWidgets import  QApplication, QMainWindow, QGraphicsScene, QGraphicsEllipseItem
-from PyQt6.QtGui import QColor, QPixmap, QImage
+from PyQt6.QtWidgets import QHeaderView, QApplication, QMainWindow, QGraphicsScene, QGraphicsEllipseItem
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QColor, QPixmap, QImage
+
 from PyQt6 import uic
-from qt_material import apply_stylesheet
 from PyQt6.QtCore import QLoggingCategory, QDate
+from datetime import datetime
 import socket
 import cv2 
 import requests
+from qt_material import apply_stylesheet
 
-
-API_SERVER_IP = "192.168.1.4"
+API_SERVER_IP = "192.168.1.3"
 API_SERVER_PORT = 8000
 
 # stderr (경고 메시지) 출력 차단
-# sys.stderr = open(os.devnull, 'w')
+sys.stderr = open(os.devnull, 'w')
 # # 모든 Qt 경고 메시지 차단
-# QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
+QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
 
 class RestAPIManager:
     def __init__(self):
@@ -76,51 +77,98 @@ class RestAPIManager:
         return None
 
 class logWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, parent_main_window):
         super().__init__()
         uic.loadUi("log.ui", self)
         self.api_manager = RestAPIManager()
+        self.parent_main_window = parent_main_window
 
-        self.undo_btn.clicked.connect(self.on_groupbox_click)
+        self.undo_btn.clicked.connect(self.undo_click)
         self.search_btn.clicked.connect(self.search)
 
         # 콤보박스 초기화
-        self.combo_vehicle_id.addItems(["1", "2"])
+        self.ID_combo.addItems(["1", "2"])
 
         # 기본 날짜 설정
         today = QDate.currentDate()
-        self.date_start.setDate(today)
-        self.date_end.setDate(today)
+        self.start_date.setDate(today)
+        self.end_date.setDate(today)
+        
+        self.model = QStandardItemModel()
+        self.tableView.setModel(self.model)
+        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
-    def on_groupbox_click(self): 
+
+        self.setStyleSheet("""
+            QTableView {
+                color: black;
+                font-size: 12pt;
+                font-weight: bold;
+            }
+        """)
+
+        self.load_today_logs()
+
+
+    def load_today_logs(self):
+        today_str = QDate.currentDate().toString("yyyyMMdd")
+        payload = {
+            "start_date": today_str,
+            "end_date": today_str,
+            "vehicle_id": 1
+        }
+
+        response = self.api_manager.send_post_request("/driving_log", payload)
+        if response and response.get("status") == "ok":
+            self.populate_table(response.get("log_info", []))
+        else:
+            print("[INFO] 서버 연결 실패 또는 빈 응답 → 기본 테이블 비워둠")
+
+
+    def undo_click(self): 
         from main import AdminMainWindow
-        self.main_window = AdminMainWindow()
-        self.main_window.show()
-        self.close()
-
+        self.hide()
+        self.parent_main_window.show()
+        
     def search(self):
-        start_date = self.date_start.date().toString("yyyyMMdd")
-        end_date = self.date_end.date().toString("yyyyMMdd")
-        vehicle_id = int(self.combo_vehicle_id.currentText())
-
+        start_date = self.start_date.date().toString("yyyyMMdd")
+        end_date = self.end_date.date().toString("yyyyMMdd")
+        vehicle_id = int(self.ID_combo.currentText())
+        
         print("[DEBUG] 서치 요청:", start_date, end_date, vehicle_id)
-
+        
         payload = {
             "start_date": start_date,
             "end_date": end_date,
             "vehicle_id": vehicle_id
         }
-
+        
         response = self.api_manager.send_post_request("/driving_log", payload)
+        
         if response and response.get("status") == "ok":
-            log_list = response.get("log_info", [])
-            if not log_list:
-                self.text_log_result.setText("📭 조회된 주행 로그가 없습니다.")
-            else:
-                log_text = "\n\n".join([str(log) for log in log_list])
-                self.text_log_result.setText(log_text)
+            self.populate_table(response.get("log_info", []))  # ✅ 테이블에만 표시
         else:
-            self.text_log_result.setText("❌ 서버 요청 실패 또는 오류 발생.")
+            self.model.clear()
+            self.model.setHorizontalHeaderLabels(["에러"])
+            self.model.appendRow([QStandardItem("❌ 서버 요청 실패 또는 오류 발생.")])
+            
+    def populate_table(self, log_info_list):
+        self.model.clear()
+        self.model.setHorizontalHeaderLabels(["시간", "행동", "사유", "차량번호"])
+        
+        for log in log_info_list:
+            time_item = QStandardItem(log.get("create_date", ""))
+            action_item = QStandardItem(log.get("event_action", ""))
+            reason_item = QStandardItem(log.get("event_reason", ""))
+            number_item = QStandardItem(log.get("vehicle_number", ""))
+            
+            self.model.appendRow([time_item, action_item, reason_item, number_item])
+
+        for col in range(self.model.columnCount()):
+            self.tableView.resizeColumnToContents(col)
+
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

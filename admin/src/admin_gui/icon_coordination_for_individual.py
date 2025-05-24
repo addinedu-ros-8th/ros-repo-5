@@ -45,7 +45,8 @@ PIXEL_COORDINATES  = {
 
 
 # 아이콘 순서를 명시적으로 고정
-ICON_ORDER = ["A", "D", "R", "V", "K", "L"]
+ICON_ORDER = ["A", "D", "R", "V", "K", "L", "J", "N", "M", "P"]
+
 
 
 
@@ -56,6 +57,7 @@ class CoordinateMapper:
         self.img_height = img_height
         self.marker_length = marker_length
         self.outlier_log = []  # 튐 좌표 로그
+
 
         self.src_pts = np.float32([ICON_COORDINATES[name] for name in ICON_ORDER])
         self.dst_pts = np.float32([PIXEL_COORDINATES[name] for name in ICON_ORDER])

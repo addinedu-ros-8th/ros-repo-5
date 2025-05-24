@@ -6,15 +6,7 @@ import rclpy
 from rclpy.node import Node
 from controll_server_package_msgs.srv import CmdMoveTo
 
-class RosSubscriberNode(Node):
-    def __init__(self, gui_callback):
-        super().__init__('admin_gui_node')
-        self.subscription = self.create_subscription(
-            TaxiState,
-            '/admin_gui_topic',
-            gui_callback,
-            10
-        )
+
 
 class AdminServiceNode(Node):
     def __init__(self, gui_callback):

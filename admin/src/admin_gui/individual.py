@@ -5,23 +5,32 @@ import threading
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsEllipseItem, QLabel
 from PyQt6.QtGui import QColor, QPixmap, QImage
 from PyQt6 import uic
-from qt_material import apply_stylesheet
+
 from PyQt6.QtCore import QLoggingCategory, QMetaObject, Qt, QPropertyAnimation, QPoint
-from icon_coordination_for_individual import CoordinateMapper
+from icon_coordination_for_individual import *
 import socket
 import cv2 
 import zlib
 
-import rclpy
-from rclpy.node import Node
-from controll_server_package_msgs.msg import TaxiState
+
 from icon_coordination_for_individual import CoordinateMapper
 
+ICON_HALF = 30 
 
-IP = "192.168.1.4"
+IP = "192.168.1.3"
 PORT_MAP= {
-    1: 9000,
-    2: 9001
+    1: 9001,
+    2: 9000
+}
+
+ICON_NODE_NAMES = {
+    (0.262, 0.161): "애드인에듀 학원",
+    (0.17, 0.217): "기억할게!술집",
+    (-0.015, -0.078): "내 거친 생각 정신과",
+    (-0.045, 0.021): "불안한 눈빛 안과",
+    (0.08, 0.069): "신라호텔",
+    (0.1, 0.097): "월드컵 경기장",
+    (0.0, 0.0): "준비중"
 }
 
 # PORT = 9999
@@ -32,20 +41,12 @@ sys.stderr = open(os.devnull, 'w')
 QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
 
 
-def ros_spin(gui):
-    rclpy.init()
-    node = RosSubscriberNode(gui.update_taxi_status)
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
-
-
-
 class UdpVideoReceiver:
     def __init__(self, port, update_callback):
         self.port = port
         self.running = False
         self.update_callback = update_callback  # QPixmap 전달용 콜백
+
 
     def start(self):
         self.running = True
@@ -68,7 +69,7 @@ class UdpVideoReceiver:
                 try:
                     decompressed = zlib.decompress(data)
                 except zlib.error as e:
-                    # print(f"[ZLIB ERROR] decompress failed: {e}")
+                    print(f"[ZLIB ERROR] decompress failed: {e}")
                     continue
 
                 np_data = np.frombuffer(decompressed, dtype=np.uint8)
@@ -88,12 +89,17 @@ class UdpVideoReceiver:
             except Exception as e:
                 print(f"[UDP ERROR] {e}")
 
+
 class IndividualWindow(QMainWindow):
-    def __init__(self, vehicle_id):
+    def __init__(self, vehicle_id, parent_main_window):
         super().__init__()
         uic.loadUi("individual.ui", self)
         self.vehicle_id = vehicle_id
         self.Vehicle_ID.setText(f"{vehicle_id}")
+        self.Map.setFixedSize(521, 351) 
+        self.parent_main_window = parent_main_window
+        self.Battery_remain.setVisible(False)
+
         
         # 상태 코드 → 한글 매핑
         self.STATE_KOR_MAP = {
@@ -119,9 +125,11 @@ class IndividualWindow(QMainWindow):
 
     def go_main(self):
         # self.closeEvent()
+        
         from main import AdminMainWindow
-        self.main_window = AdminMainWindow()
-        self.main_window.show()
+        self.hide()
+        self.parent_main_window.show() 
+        #self.main_window.show()
         self.close()
 
 
@@ -140,96 +148,106 @@ class IndividualWindow(QMainWindow):
         self.receiver.stop()
         super().closeEvent(event)
 
-    def update_taxi_status(self, msg):
-        if msg.vehicle_id != self.vehicle_id:
-            return  # 내가 보고 있는 핑키가 아니라면 무시
-    
-        QMetaObject.invokeMethod(
-            self,
-            lambda: self.update_labels(msg),
-            Qt.ConnectionType.QueuedConnection
-        )
 
-    def update_taxi_status(self, msg):
-        vehicle_id = msg.vehicle_id
+    def receive_taxi_status(self, vehicle_id, msg):
+        if vehicle_id != self.vehicle_id:
+            return
         
-        if vehicle_id in self.pinky_items and len(msg.location) == 2:
-            x_world, y_world = msg.location
-            px, py = self.mapper.world_to_pixel(x_world, y_world)
-            self.latest_positions[vehicle_id] = (px, py)
-            # → 바로 부드럽게 애니메이션 이동!
-            self.animate_pinky_move(vehicle_id, px, py)
+        if msg.state == "ready" and msg.passenger_count == 0 and msg.battery == 0.0:
+            print(f"[FORCE STATE] 차량 {vehicle_id} 상태를 '충전 중'으로 설정")
+            msg.state = "charged"
+        x_world, y_world = msg.location
+        px, py = self.mapper.world_to_pixel(x_world, y_world)
+        self.update_pinky_position(px, py)
 
-            # 상태 문자열 한글 변환
-            state_kor = self.STATE_KOR_MAP.get(msg.state, msg.state)
+        state_kor = self.STATE_KOR_MAP.get(msg.state, msg.state)
+        styled = lambda text: f"<span style=\"font-size:16pt; font-weight:600;\">{text}</span>"
 
-            # 공통 스타일 적용
-            def styled(text): return f'<span style="font-size:16pt; font-weight:600;">{text}</span>'
+        node_name = self.find_nearest_node(px, py)
 
-            if vehicle_id == 1:
-                self.label_pinky1_status.setText(styled(f"운행 상태: {state_kor}"))
-                self.label_pinky1_battery.setText(styled(f"배터리: {msg.battery:.0f}%"))
-                self.label_pinky1_position.setText(styled(f"위치: ({x_world:.3f}, {y_world:.3f})"))
-                self.label_pinky1_log.setText(styled(f"탑승자: {msg.passenger_count}명"))
 
-            elif vehicle_id == 2:
-                self.label_pinky2_status.setText(styled(f"운행 상태: {state_kor}"))
-                self.label_pinky2_battery.setText(styled(f"배터리: {msg.battery:.0f}%"))
-                self.label_pinky2_position.setText(styled(f"위치: ({x_world:.3f}, {y_world:.3f})"))
-                self.label_pinky1_log_2.setText(styled(f"탑승자: {msg.passenger_count}명"))
-    
+        self.condition.setText(state_kor)
+        self.remain_Battery_text.setText(f"{msg.battery:.0f}%")
+        self.update_battery_visual(msg.battery)
+        self.passenger.setText(styled(f"탑승자: {msg.passenger_count}명"))
+        start_x, start_y = msg.start
+        dest_x, dest_y = msg.destination
+        
+        start_name = self.find_nearest_node(start_x, start_y)
+        dest_name = self.find_nearest_node(dest_x, dest_y)
+        
+        self.record_text.setText(f"출발지: {start_name} / 목적지: {dest_name}")
+
+    def update_battery_visual(self, percent: float):
+        base_x, base_y = 10, 540       
+        base_width = 81
+        max_height = 121               # 100%일 때 높이
+        
+        if percent <= 0:
+            self.Battery_remain.setVisible(False)
+            return
+        
+        self.Battery_remain.setVisible(True)
+        clamped = min(max(percent, 0), 100)
+        new_height = int((clamped / 100.0) * max_height)
+        
+        # 하단 기준으로 위로 줄어들게 위치 조정
+        new_y = base_y + (max_height - new_height)
+        self.Battery_remain.setGeometry(base_x, new_y, base_width, new_height)
+        self.Battery_remain.setText(f"{int(clamped)}%")
+
 
 
 
     def setup_pinky_image(self):
-        
-        # Map 위젯 위에 Pinky 설정
-        self.pinky_image = QLabel(self.Map)  # Map의 자식으로 Pinky 설정
-        pinky_pixmap = QPixmap("data/map_icon/pinky.png")
-        
-        # QPixmap 투명 배경 유지 (Alpha 채널 유지)
+        self.pinky_image = QLabel(self.Map)
+
+        if self.vehicle_id == 1: 
+            pinky_pixmap = QPixmap("data/pinky_1.png")
+        else:
+            pinky_pixmap = QPixmap("data/pinky_2.png")
+
         self.pinky_image.setPixmap(pinky_pixmap)
-        self.pinky_image.setGeometry(0,0,60, 60)  # 초기 크기와 위치 설정
+        self.pinky_image.setGeometry(0, 0, 60, 60)
         self.pinky_image.setScaledContents(True)
-        self.pinky_image.setStyleSheet("background: transparent;")  # 투명 배경 유지
-        
-        # Pinky 이미지를 항상 맨 앞에 위치 (Map 바로 위)
-        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)  # 마우스 이벤트 무시
-        self.pinky_image.raise_()  # 맨 앞에 위치
+        self.pinky_image.setStyleSheet("background: transparent;")
+        self.pinky_image.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.pinky_image.raise_()
     
 
     def update_pinky_position(self, x, y):
+        x = max(ICON_HALF, min(x, self.mapper.img_width - ICON_HALF))
+        y = max(ICON_HALF, min(y, self.mapper.img_height - ICON_HALF))
+        
         if not self.pinky_image.isVisible():
             self.pinky_image.move(int(x - 30), int(y - 30))
             self.pinky_image.setVisible(True)
         else:
-            print( x, y)
             self.pinky_image.move(int(x - 30), int(y - 30))
 
+    def find_nearest_node(self, px, py):
+        min_dist = float("inf")
+        closest_name = "?"
+        for (wx, wy), name in ICON_NODE_NAMES.items():
+            mapped_x, mapped_y = self.mapper.world_to_pixel(wx, wy)
+            dist = (mapped_x - px) ** 2 + (mapped_y - py) ** 2
+            if dist < min_dist:
+                min_dist = dist
+                closest_name = name
+        return closest_name
 
- 
-
-    
 
 
-class RosSubscriberNode(Node):
-    def __init__(self, gui_callback):
-        super().__init__('individual_gui_node')
-        self.subscription = self.create_subscription(
-            TaxiState,
-            '/admin_gui_topic',
-            gui_callback,
-            10
-        )
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = IndividualWindow()
-    apply_stylesheet(app, theme='dark_blue.xml')
+    window = IndividualWindow(vehicle_id=1, parent_main_window=None)
+
     window.show()
 
     # ROS 노드 스레드 실행
-    ros_thread = threading.Thread(target=ros_spin, args=(window,), daemon=True)
-    ros_thread.start()
+    # ros_thread = threading.Thread(target=ros_spin, args=(window,), daemon=True)
+    # ros_thread.start()
 
     sys.exit(app.exec())

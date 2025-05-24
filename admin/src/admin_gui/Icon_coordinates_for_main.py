@@ -17,36 +17,34 @@ ICON_COORDINATES : Dict[str, Tuple[float, float]]= {
 
 # 961*521
 PIXEL_COORDINATES  = {
-    "A":(108,87),
-    "B":(332,47),
-    "C":(622, 26),
-    "D":(838, 52),
-    "E" :(633,83),
-    "F":(158, 134),
-    "G":(342, 106),
-    "H":(640, 138),
-    "I":(788,158),
-    "J":(140, 230),
-    "K":(442, 235),
-    "L":(503, 241),
-    "M":(820, 267),
-    "N":(162, 336),
-    "O":(352, 357),
-    "P":(618, 395),
-    "Q":(798, 377),
-    "R":(109, 465),
-    "S":(319, 475),
-    "T":(328, 412),
-    "U":(631, 454),
-    "V":(871, 412)
+    "A":(110,82),
+    "B":(352,51),
+    "C":(632, 22),
+    "D":(838, 55),
+    "E" :(627,77),
+    "F":(152, 123),
+    "G":(360, 100),
+    "H":(631, 137),
+    "I":(779,158),
+    "J":(140, 232),
+    "K":(440, 233),
+    "L":(504, 236),
+    "M":(815, 254),
+    "N":(159, 341),
+    "O":(343, 355),
+    "P":(632, 392),
+    "Q":(795, 380),
+    "R":(99, 448),
+    "S":(327, 477),
+    "T":(324, 414),
+    "U":(637, 455),
+    "V":(852, 428)
      
 }
 
 
-
 # 아이콘 순서를 명시적으로 고정
-ICON_ORDER = ["A", "D", "R", "V", "K", "L"]
-
+ICON_ORDER = ["A", "D", "E", "H", "I", "K", "L", "P", "Q", "V"]
 
 
 
@@ -56,6 +54,7 @@ class CoordinateMapper:
         self.img_height = img_height
         self.marker_length = marker_length
         self.outlier_log = []  # 튐 좌표 로그
+
 
         self.src_pts = np.float32([ICON_COORDINATES[name] for name in ICON_ORDER])
         self.dst_pts = np.float32([PIXEL_COORDINATES[name] for name in ICON_ORDER])
@@ -82,7 +81,7 @@ class CoordinateMapper:
         px, py = int(dst[0, 0]), int(dst[1, 0])
         return px, py
 
-# ---- 디버깅용: 변환 검증 ----
+# ---- 디버깅용: 변환 검증 ----961*521
 if __name__ == "__main__":
     mapper = CoordinateMapper(961, 521, marker_length=0.1)
     print("\n[실좌표 → 픽셀 변환 검증 결과]")
