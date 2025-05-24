@@ -22,6 +22,8 @@ class AdminGuiTopicPublisher(Node):
             msg.location = list(taxi.location)  # tuple → list 변환
             msg.battery = taxi.battery
             msg.passenger_count = taxi.passenger_count
+            msg.destination = taxi.destination
+            msg.start = taxi.start
 
             self.publisher_.publish(msg)
             # self.get_logger().info(f"📤 TaxiState 발행: {msg}")
