@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>591</width>
-    <height>913</height>
+    <width>579</width>
+    <height>888</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -411,6 +411,16 @@ padding: 5px 10px;
       <height>71</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
+    </property>
     <property name="text">
      <string>   애드인에듀 학원</string>
     </property>
@@ -426,6 +436,16 @@ padding: 5px 10px;
       <width>131</width>
       <height>71</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
     </property>
     <property name="text">
      <string>     기억할게! 술집</string>
@@ -443,6 +463,16 @@ padding: 5px 10px;
       <height>71</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
+    </property>
     <property name="text">
      <string>         신라호텔</string>
     </property>
@@ -459,6 +489,16 @@ padding: 5px 10px;
       <height>71</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
+    </property>
     <property name="text">
      <string>      월드컵 경기장</string>
     </property>
@@ -469,11 +509,21 @@ padding: 5px 10px;
    <widget class="QLineEdit" name="Info3">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>60</x>
       <y>520</y>
-      <width>131</width>
+      <width>141</width>
       <height>71</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
     </property>
     <property name="text">
      <string>     내 거친 생각 정신과</string>
@@ -485,11 +535,21 @@ padding: 5px 10px;
    <widget class="QLineEdit" name="Info4">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>520</y>
+      <x>360</x>
+      <y>510</y>
       <width>131</width>
       <height>71</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
     </property>
     <property name="text">
      <string>   불안한 눈빛 안과</string>

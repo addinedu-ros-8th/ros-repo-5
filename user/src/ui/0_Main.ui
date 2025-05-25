@@ -436,6 +436,16 @@ padding: 5px 10px;
       <height>71</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
+    </property>
     <property name="text">
      <string>   애드인에듀 학원</string>
     </property>
@@ -451,6 +461,16 @@ padding: 5px 10px;
       <width>131</width>
       <height>71</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
     </property>
     <property name="text">
      <string>     기억할게! 술집</string>
@@ -468,6 +488,16 @@ padding: 5px 10px;
       <height>71</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
+    </property>
     <property name="text">
      <string>         신라호텔</string>
     </property>
@@ -484,6 +514,16 @@ padding: 5px 10px;
       <height>71</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
+    </property>
     <property name="text">
      <string>      월드컵 경기장</string>
     </property>
@@ -496,9 +536,19 @@ padding: 5px 10px;
      <rect>
       <x>70</x>
       <y>520</y>
-      <width>131</width>
+      <width>141</width>
       <height>71</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
     </property>
     <property name="text">
      <string>     내 거친 생각 정신과</string>
@@ -515,6 +565,16 @@ padding: 5px 10px;
       <width>131</width>
       <height>71</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 11pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
     </property>
     <property name="text">
      <string>   불안한 눈빛 안과</string>
@@ -609,6 +669,16 @@ padding: 5px 10px;</string>
       <height>41</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 16pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
+    </property>
     <property name="readOnly">
      <bool>true</bool>
     </property>
@@ -621,6 +691,16 @@ padding: 5px 10px;</string>
       <width>201</width>
       <height>41</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-color: white;
+    color: black;
+    font-size: 16pt;
+    border: 2px solid #4A4A4A;
+    border-radius: 10px;
+    padding: 4px;
+}</string>
     </property>
     <property name="readOnly">
      <bool>true</bool>
