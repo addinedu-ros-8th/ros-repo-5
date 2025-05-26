@@ -199,7 +199,8 @@ cd ros-repo-5
 #### User GUI 
 ![image_720](https://github.com/user-attachments/assets/8563dc85-264b-45f1-9c0f-b05dab0c98bc)
 
-
+#### Admin GUI 
+![InShot_20250526_195425386](https://github.com/user-attachments/assets/9556c3df-2a79-4165-8727-5455b7af6b0b)
 
 
 
@@ -216,8 +217,10 @@ cd ros-repo-5
 ![inshot_20250526_200214602_360](https://github.com/user-attachments/assets/bfb439c8-d3cd-4453-ba72-65f05d613b27)
 
 
+
+
 #### Admin GUI 
-![inshot_20250526_200105044_360](https://github.com/user-attachments/assets/f035d1df-c0fa-4864-a447-88bbbadce42d)
+![InShot_20250526_200105044](https://github.com/user-attachments/assets/1bf073c3-948e-46ed-be65-f74a203a3676)
 
 
 
@@ -229,10 +232,12 @@ cd ros-repo-5
 
 
 #### User GUI 
+![inshot_20250526_200931101_360](https://github.com/user-attachments/assets/1f56814e-47f9-4222-b998-465e1b05b725)
 
 
 
 #### Admin GUI 
+![InShot_20250526_200844079](https://github.com/user-attachments/assets/d45e0382-70d8-4615-8be6-5f8ad20ae787)
 
 
 
