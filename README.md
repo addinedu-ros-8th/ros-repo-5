@@ -1,5 +1,5 @@
-![20250526_100820__2__360](https://github.com/user-attachments/assets/61f33401-ac21-4a89-92ce-3d21c58e2acc)
-![ChatGPT Image May 26, 2025, 12_52_15 PM](https://github.com/user-attachments/assets/8262538f-89b0-4234-9d2d-c3a225c73910)
+
+![ChatGPT Image May 26, 2025, 12_52_15 PM (2)](https://github.com/user-attachments/assets/c25695b5-e296-4e4e-bf4c-d24439e6fe5e)
 
 
 # **Autonomous System: ADDIN 🚖 TAXI**
@@ -134,9 +134,6 @@ cd ros-repo-5
 
 
 ### 택시 배차 할당 방식 
-![image](https://github.com/user-attachments/assets/7a3989a3-de0e-4f08-bb65-bd6dba94a0d0)
-
-
 #### **승객 인원**
 **5명 이상** -> 승합차 
 **4명 이하** -> 승용차 
