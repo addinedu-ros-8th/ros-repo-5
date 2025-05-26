@@ -150,8 +150,10 @@ cd ros-repo-5
 
 ## 시연 
 
-### 도로주행
-![20250526_100820 (2) (1) (1)](https://github.com/user-attachments/assets/57b0e955-eec1-4318-acdf-24ab07268314)
+### 전체 시연 영상 
+![전체 시나리오영상 (1)](https://github.com/user-attachments/assets/e4e8ba72-f14f-4b78-83ba-c86b161ac5a2)
+
+
 
 
 
@@ -164,13 +166,14 @@ cd ros-repo-5
 
 
 ### 2. 배차 
+![대기-호출-배차](https://github.com/user-attachments/assets/b167e83d-d2f4-4c28-81da-830c12213d94)
 
 
 
 
 #### User GUI 
+![inshot_20250526_194736318_360](https://github.com/user-attachments/assets/a00fba61-01cf-417b-9e4b-0f273ad0b7ee)
 
-![image_720](https://github.com/user-attachments/assets/0b0b9d6d-9cbe-4d73-8fda-62db6dff28c9)
 
 
 
@@ -185,10 +188,12 @@ cd ros-repo-5
 
 ### 3. 승차 
 
+![승객 승차](https://github.com/user-attachments/assets/cc3500fd-ff15-4d94-a65c-1f669a81be39)
 
 
 
 #### User GUI 
+![image_720](https://github.com/user-attachments/assets/8563dc85-264b-45f1-9c0f-b05dab0c98bc)
 
 
 
@@ -197,7 +202,9 @@ cd ros-repo-5
 
 
 
-### 4. 운행 
+### 4. 운행 ~ 하차
+![운행-하차](https://github.com/user-attachments/assets/070e3c4f-bdd6-4ea7-ae07-8e801c9953c5)
+
 
 
 #### User GUI 
