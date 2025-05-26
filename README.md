@@ -6,6 +6,12 @@
 
 **자율주행 로봇** 택시 프로젝트 **ADDIN TAXI**
 
+
+## 실행 환경 
+
+
+
+
 ```bash
 git clone https://github.com/addinedu-ros-8th/ros-repo-5.git
 cd ros-repo-5
@@ -13,7 +19,7 @@ cd ros-repo-5
 
 
 
-## 프로젝트 개요
+## 팀원 구성 
 
 
 
@@ -21,7 +27,17 @@ cd ros-repo-5
 ## 주요 기능 
 
 
+
+
 ## 시스템 아키텍처
 
 
-## 🖥UI 흐름도
+
+
+## UI
+
+
+
+
+
+
