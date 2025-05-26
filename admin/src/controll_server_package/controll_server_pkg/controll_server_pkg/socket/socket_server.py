@@ -2,10 +2,34 @@ import socket
 import threading
 import time
 import json
+import os
+import signal
+import subprocess
 from controll_server_pkg.common.database import Database
 
 HOST = '0.0.0.0'
 PORT = 9000
+
+def kill_process_on_port(port):
+    """9000번 포트를 점유 중인 프로세스를 찾아 강제 종료"""
+    try:
+        result = subprocess.run(
+            ["lsof", "-ti", f"tcp:{port}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True
+        )
+        pids = result.stdout.strip().split('\n')
+        for pid in pids:
+            if pid:
+                print(f"🔌 PID {pid} 종료 중...")
+                os.kill(int(pid), signal.SIGKILL)
+        if pids and pids[0]:
+            print("✅ 기존 포트 점유 프로세스 종료 완료")
+        else:
+            print("✅ 포트 9000을 사용하는 프로세스 없음")
+    except Exception as e:
+        print(f"❌ 포트 종료 중 오류 발생: {e}")
 
 class SocketServer:
     def __init__(self, manager=None):
@@ -35,7 +59,7 @@ class SocketServer:
 
             # 🔁 주기적으로 Taxi 정보 전송
             while True:
-                conn.settimeout(0.1)
+                conn.settimeout(1.0)
                 try:
                     signal = conn.recv(1024).decode().strip()
                     if signal == "disconnect":
@@ -44,19 +68,17 @@ class SocketServer:
                 except socket.timeout:
                     pass
                 
-                # ✅ Taxi 조회 (RestServer와 동일한 방식)
                 taxi = self.manager.get_taxi(vehicle_id)
-
                 if not taxi:
                     print(f"🚫 존재하지 않는 vehicle_id: {vehicle_id}")
-                    conn.sendall(json.dumps({"error": f"Taxi {vehicle_id} not found"}) .encode())
+                    conn.sendall(json.dumps({"error": f"Taxi {vehicle_id} not found"}).encode())
                     conn.close()
                     return
-            
+
                 taxi_data = taxi.to_dict()
                 conn.sendall((json.dumps(taxi_data) + "\n").encode())
                 print(f"[📤 전송됨] {taxi_data}")
-                time.sleep(2)
+                time.sleep(1)
 
         except Exception as e:
             print(f"❌ 예외 발생: {e}")
@@ -76,6 +98,10 @@ class SocketServer:
             self.client_threads.append(thread)
 
 def main():
+    print("🧹 9000번 포트 정리 시도 중...")
+    kill_process_on_port(PORT)
+    time.sleep(1)  # 포트 정리 후 대기
+
     server = SocketServer()
     server.run()
 

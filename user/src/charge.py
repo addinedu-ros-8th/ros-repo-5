@@ -25,8 +25,9 @@ QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=fals
 class ChargeWindow(QMainWindow):
     def __init__(self, previous_window, start_icon=None, destination_icon=None):
         super().__init__()
-        uic.loadUi(self.get_ui_path("/home/lim/dev_ws/addintexi/UserGUI/ui/Charge.ui"), self)
+        uic.loadUi(self.get_ui_path("Charge.ui"), self)
         self.left_money_manager = LeftMoneyManager(self.LeftMoney)
+        self.move(1400, 100) 
         
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()

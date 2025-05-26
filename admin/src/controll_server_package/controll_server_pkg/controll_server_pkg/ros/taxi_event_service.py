@@ -4,7 +4,7 @@ from controll_server_package_msgs.srv import TaxiEvent
 from controll_server_pkg.common.manager import ServiceManager
 from controll_server_pkg.model.taxi import Taxi
 from controll_server_pkg.common.database import Database
-
+import time  
 
 class TaxiEventServiceNode(Node):
     """
@@ -106,14 +106,33 @@ class TaxiEventServiceNode(Node):
             self.get_logger().warn(f"🚫 존재하지 않는 택시 ID: {vehicle_id}")
             return f"Taxi {vehicle_id} not found"
 
+        if event_type == 4:
+            self.send_to_pi(vehicle_id, 4)
+            return "ok"
+        elif event_type == 4:
+            self.send_to_pi(vehicle_id, 4)
+            return "ok"
+
         if event_type == 11 and taxi.state == "boarding":
             if taxi.passenger_state == "승차":
                 self.send_to_pi(vehicle_id, event_type)
-                result = self.manager.drive_router_node(vehicle_id, 13, taxi.start_node)
-                if result == "ok":
-                    taxi.state = "drive"
-                    self.send_to_pi(vehicle_id, 9)
-                return "ok"
+
+                # 반복 재시도
+                max_retries = 5
+                retry_interval = 1.0  # 초
+                for attempt in range(max_retries):
+                    result = self.manager.drive_router_node(vehicle_id, 13, taxi.destination_node)
+                    if result == "ok":
+                        self.send_to_pi(vehicle_id, 9)
+                        taxi.state = "driving"
+                        return "ok"
+                    
+                    self.get_logger().warn(f"🔁 주행 명령 재시도 {attempt + 1}/{max_retries} (결과: {result})")
+                    time.sleep(retry_interval)
+                
+                self.get_logger().error("❌ 주행 명령 재시도 실패 (최대 횟수 초과)")
+                return "error"
+
             else:
                 self.get_logger().warn(f"🚫 탑승 상태가 아님: {taxi.passenger_state}")
                 return f"승객 상태={taxi.passenger_state} (expected '승차')"
@@ -123,7 +142,13 @@ class TaxiEventServiceNode(Node):
                 self.send_to_pi(vehicle_id, event_type)
                 result = self.manager.drive_router_node(vehicle_id, 13, taxi.start_node)
                 if result == "ok":
-                    taxi.state = "charging" if taxi.battery < 60 else "ready"
+
+                    if taxi.battery < 60:
+                        taxi.state = "charging"
+                        self.send_to_pi(vehicle_id, 5)
+                    else:
+                        taxi.state = "ready"
+                        self.send_to_pi(vehicle_id, 3)
                     self.send_to_pi(vehicle_id, 9)
 
                 return "ok"
@@ -136,7 +161,7 @@ class TaxiEventServiceNode(Node):
             self.send_to_pi(vehicle_id, 8)
             return "ok"
 
-        elif event_type == 14 and data == "destination" and taxi.state == "drive":
+        elif event_type == 14 and data == "destination" and taxi.state == "driving":
             taxi.state = "landing"
             self.send_to_pi(vehicle_id, 8)
             self.send_to_pi(vehicle_id, 10)

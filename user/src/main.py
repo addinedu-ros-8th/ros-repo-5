@@ -16,12 +16,9 @@ from PyQt6.QtCore import QLoggingCategory
 
 # stderr (경고 메시지) 출력 차단
 sys.stderr = open(os.devnull, 'w')
-
 # 모든 Qt 경고 메시지 차단
 QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
-
-
-from_class = uic.loadUiType("/home/lim/dev_ws/addintexi/UserGUI/ui/0_Main.ui")[0]
+from_class = uic.loadUiType("ui/0_Main.ui")[0]
 
 class MainWindow(QMainWindow, from_class):
     def __init__(self):
@@ -32,17 +29,12 @@ class MainWindow(QMainWindow, from_class):
         self.api_manager = RestAPIManager()
         self.start_location = None
         self.end_location = None
+        self.socket = None
+        self.move(1400, 100) 
+   
 
-
-        # 로그인된 사용자 확인
-        if UserSession.is_logged_in():
-            user_id = UserSession.get_current_user()
-        else:
-            print("비로그인")
-            sys.exit(app.exec())
 
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
-        self.pinky_manager = PinkyManager()
         
         # 서버 시작 시 모든 택시 초기화
         # self.reset_taxi_ids([1, 2])
@@ -71,6 +63,8 @@ class MainWindow(QMainWindow, from_class):
         self.CheckBtn.clicked.connect(self.send_selected_location)
         self.ChargeBtn.clicked.connect(self.show_charge_page)
 
+        
+
     def update_line_edits(self):
         """
         선택된 아이콘에 따라 LineEdit에 위치 이름 표시
@@ -92,17 +86,18 @@ class MainWindow(QMainWindow, from_class):
         self.charge_window.show()
         self.hide()
 
-    # def reset_taxi_ids(self, taxi_ids):
-    #     """
-    #     서버로 지정된 택시 ID 초기화 요청 (reset_taxi)
-    #     """
-    #     for taxi_id in taxi_ids:
-    #         reset_data = {"vehicle_id": taxi_id}
-    #         response = self.api_manager.send_post_request("/reset_taxi", reset_data)
-    #         if response and response.get("status") == "reset complete":
-    #             print(f"[INFO] 택시 {taxi_id} 초기화 완료.")
-    #         else:
-    #             print(f"[ERROR] 택시 {taxi_id} 초기화에 실패했습니다.")
+
+    def reset_taxi_ids(self, taxi_ids):
+        """
+        서버로 지정된 택시 ID 초기화 요청 (reset_taxi)
+        """
+        for taxi_id in taxi_ids:
+            reset_data = {"vehicle_id": taxi_id}
+            response = self.api_manager.send_post_request("/reset_taxi", reset_data)
+            if response and response.get("status") == "reset complete":
+                print(f"[INFO] 택시 {taxi_id} 초기화 완료.")
+            else:
+                print(f"[ERROR] 택시 {taxi_id} 초기화에 실패했습니다.")
 
 
     def send_selected_location(self):
@@ -121,9 +116,8 @@ class MainWindow(QMainWindow, from_class):
             dest_x, dest_y = destination_coords
             client_id = UserSession.get_current_user()
             if not client_id: 
-                QMessageBox.warning(self,"에러","비로그인-디버깅처리")
                 #디버깅
-                #client_id ="1"
+                client_id ="1"
 
             # JSON 요청 생성
             request_data = {
@@ -139,35 +133,19 @@ class MainWindow(QMainWindow, from_class):
 
             # REST API POST 요청 
             response = self.api_manager.send_post_request("/call_taxi", request_data)
-
-
-            # call.py 페이지로 이동 -> 디버깅용 코드
-            from call import CallWindow
-            self.call_window = CallWindow(
-                self.icon_handler.start_icon.objectName(),
-                self.icon_handler.destination_icon.objectName(),
-            )
-            self.call_window.show()
-            self.close()
           
           # 서버 응답 확인
             if response:
                 print(f"[INFO] 서버 응답: {response}")
-                if response.get("status") == "taxi assigned":
+                if response.get("status") == "taxi dispatch":
                     print(f"[INFO] 택시 배정 완료 - 택시 ID: {response.get('vehicle_id')}")
                     taxi_id = response.get("vehicle_id")
                     UserSession.set_taxi_id(taxi_id)
-
-                    # 핑키에게 전달
-                    
-                    self.pinky_manager.set_destinations(start_coords, destination_coords)
-                    self.pinky_manager.start()
                     
                     # 좌표 저장 (출발지/목적지
-                    self.start_coords = start_coords
-                    self.destination_coords = destination_coords
-                    self.pinky_manager.set_destinations(self.start_coords, self.destination_coords)
-                    self.pinky_manager.start()
+                    # self.start_coords = start_coords
+                    # self.destination_coords = destination_coords
+
 
                     # 선택된 아이콘 번호와 좌표를 애플리케이션 전역에 저장
                     from call import CallWindow
@@ -180,8 +158,28 @@ class MainWindow(QMainWindow, from_class):
 
                 else:
                     print(f"[ERROR] 서버 오류 또는 응답 처리 문제: {response.get('message')}")
+                    # print("[ERROR] 디버깅 -> taxi_id =2.")
+                    # from call import CallWindow
+                    # taxi_id=2
+                    # UserSession.set_taxi_id(taxi_id)
+                    # self.call_window = CallWindow(
+                    #     self.icon_handler.start_icon.objectName(),
+                    #     self.icon_handler.destination_icon.objectName(),
+                    # )
+                    # self.call_window.show()
+                    # self.close()
             else:
                 print("[ERROR] 서버 응답을 수신할 수 없습니다.")
+                # print("[ERROR] 디버깅 -> taxi_id =2.")
+                # from call import CallWindow
+                # taxi_id=2
+                # UserSession.set_taxi_id(taxi_id)
+                # self.call_window = CallWindow(
+                #     self.icon_handler.start_icon.objectName(),
+                #     self.icon_handler.destination_icon.objectName(),
+                # )
+                # self.call_window.show()
+                # self.close()
         else:
             QMessageBox.warning(self, "에러", "출발지와 목적지를 선택해주세요.")
 

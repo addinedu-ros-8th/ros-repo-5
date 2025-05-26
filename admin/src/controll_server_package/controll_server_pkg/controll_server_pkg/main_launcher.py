@@ -8,6 +8,7 @@ from controll_server_pkg.ros.taxi_state_node import TaxiStateNode
 from controll_server_pkg.ros.taxi_event_service import TaxiEventServiceNode  
 from controll_server_pkg.ros.admin_gui_topic import AdminGuiTopicPublisher
 from controll_server_pkg.common.manager import ServiceManager
+from controll_server_pkg.common.ArucoMarker import PinkyLocation
 
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
@@ -19,6 +20,10 @@ def run_rest(manager):
 def run_tcp_server(manager):
     tcp = SocketServer(manager)
     tcp.run()
+
+def run_location_server(manager):
+    loc = PinkyLocation(manager)
+    loc.update()
 
 def run_ros_nodes(manager):
     rclpy.init()
@@ -50,6 +55,9 @@ def main():
 
     print("🧠 TCP 서버 실행 중...")
     Thread(target=run_tcp_server, args=(manager,), daemon=True).start()
+
+    print("🧠 Pinky Location 서버 실행 중...")
+    Thread(target=run_location_server, args=(manager,), daemon=True).start()
 
     print("🧠 ROS 서비스 실행 중...")
     run_ros_nodes(manager)

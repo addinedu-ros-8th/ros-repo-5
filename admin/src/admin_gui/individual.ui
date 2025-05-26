@@ -73,7 +73,7 @@
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/logo.png);
+    background-image: url(data/logo.png);
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover; 
@@ -85,7 +85,7 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="LogBtn">
+    <widget class="QPushButton" name="undoBtn">
      <property name="geometry">
       <rect>
        <x>930</x>
@@ -101,8 +101,21 @@
        <bold>true</bold>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    background-color: #FFD43B;
+    color: black;
+    font-weight: bold;
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: none;
+    qproperty-icon: url(/home/lim/dev_ws/addintexi/UserGUI/data/icon/Undo.png); /* 이미지 경로 지정 */
+    qproperty-iconSize: 40px 40px;  /* 이미지 크기 설정 */
+    text-align: center;            /* 텍스트 가운데 정렬 */
+}</string>
+     </property>
      <property name="text">
-      <string>LOG</string>
+      <string/>
      </property>
     </widget>
     <widget class="QLabel" name="Vehicle_ID">
@@ -128,37 +141,6 @@
       <enum>Qt::AutoText</enum>
      </property>
     </widget>
-   </widget>
-   <widget class="QGraphicsView" name="graphicsView_map">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>60</y>
-      <width>521</width>
-      <height>351</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">/* QGraphicsView에 배경 이미지 설정 */
-QGraphicsView#graphicsView_map {
-    background-image: url(/home/lim/dev_ws/addintexi/UserGUI/data/map/map.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    border: none;
-}
-</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="realtime_video">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>60</y>
-      <width>521</width>
-      <height>351</height>
-     </rect>
-    </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_3">
     <property name="geometry">
@@ -259,6 +241,11 @@ QGraphicsView#graphicsView_map {
     color: #000000;           /* 텍스트 색상 - 검정 */
     border: 2px solid #2A2A2A; /* 테두리 - 회색 */
 	border-radius: 10px;
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 5px;
+    qproperty-alignment: 'AlignCenter';
 }</string>
     </property>
     <property name="readOnly">
@@ -280,10 +267,15 @@ QGraphicsView#graphicsView_map {
     color: #000000;           /* 텍스트 색상 - 검정 */
     border: 2px solid #2A2A2A; /* 테두리 - 회색 */
 	border-radius: 10px;
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 5px;
+    qproperty-alignment: 'AlignCenter';
 }</string>
     </property>
     <property name="text">
-     <string>      Bettery</string>
+     <string>Battery</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_9">
@@ -301,10 +293,15 @@ QGraphicsView#graphicsView_map {
     color: #000000;           /* 텍스트 색상 - 검정 */
     border: 2px solid #2A2A2A; /* 테두리 - 회색 */
 	border-radius: 10px;
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 5px;
+    qproperty-alignment: 'AlignCenter';
 }</string>
     </property>
     <property name="text">
-     <string>                                                  Velicity</string>
+     <string>Passenger</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_10">
@@ -324,7 +321,7 @@ QGraphicsView#graphicsView_map {
 }</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="Bettery_remain">
+   <widget class="QLineEdit" name="Battery_remain">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -333,8 +330,19 @@ QGraphicsView#graphicsView_map {
       <height>121</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+        background-color: #d9eb63;
+        color: #000000;
+        border: 2px solid #000000;
+        border-radius: 10px;        /* 높이 절반 = 타원 형태 */
+        padding: 0px;
+        qproperty-alignment: AlignCenter;
+  }
+</string>
+    </property>
    </widget>
-   <widget class="QLabel" name="remain_bettery_text">
+   <widget class="QLabel" name="remain_Battery_text">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -343,41 +351,26 @@ QGraphicsView#graphicsView_map {
       <height>31</height>
      </rect>
     </property>
-    <property name="text">
-     <string>0%</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="velocity">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>550</y>
-      <width>381</width>
-      <height>101</height>
-     </rect>
-    </property>
     <property name="font">
      <font>
-      <pointsize>-1</pointsize>
+      <pointsize>11</pointsize>
       <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QLineEdit {
-        background-color: #d9eb63;
-        color: #000000;
-        border: 2px solid #000000;
-        border-radius: 30px;        /* 높이 절반 = 타원 형태 */
-        padding: 0px;
-        font-weight: bold;
-        font-size: 18px;
-        qproperty-alignment: AlignCenter;
-  }
+     <string notr="true">QLabelEdit {
+    color: #000000;           /* 텍스트 색상 - 검정 */
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 5px;
+    qproperty-alignment: 'AlignCenter';
+}
 </string>
     </property>
     <property name="text">
-     <string/>
+     <string>0%</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_7">
@@ -437,10 +430,15 @@ QGraphicsView#graphicsView_map {
     color: #000000;           /* 텍스트 색상 - 검정 */
     border: 2px solid #2A2A2A; /* 테두리 - 회색 */
 	border-radius: 10px;
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 5px;
+    qproperty-alignment: 'AlignCenter';
 }</string>
     </property>
     <property name="text">
-     <string/>
+     <string>출발지/목적지</string>
     </property>
     <property name="readOnly">
      <bool>true</bool>
@@ -461,10 +459,80 @@ QGraphicsView#graphicsView_map {
     color: #000000;           /* 텍스트 색상 - 검정 */
     border: 2px solid #2A2A2A; /* 테두리 - 회색 */
 	border-radius: 10px;
+    font-size: 16pt;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 5px;
+    qproperty-alignment: 'AlignCenter';
 }</string>
     </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="realtime_video">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>70</y>
+      <width>501</width>
+      <height>321</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="Map">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>60</y>
+      <width>521</width>
+      <height>341</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLineEdit {
+    background-image: url(data/map.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover; 
+    border: none;
+    padding: 0px;
+}</string>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="passenger">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>550</y>
+      <width>211</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>26</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::AutoText</enum>
     </property>
    </widget>
   </widget>
