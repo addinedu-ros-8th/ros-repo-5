@@ -29,6 +29,8 @@ class RidingWindow(QMainWindow):
         self.api_manager = RestAPIManager()
         self.start_location = None
         self.end_location = None
+        self.move(1400, 100) 
+        
 
         # IconHandler로 아이콘 고정 (출발지/목적지)
         self.icon_handler = IconHandler(self, {
@@ -80,9 +82,18 @@ class RidingWindow(QMainWindow):
         self.pinky_image.raise_()  # 맨 앞에 위치
 
     def update_pinky_position(self, x, y):
-        self.pinky_image.setVisible(True)
-        print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
-        self.pinky_image.move(int(x - 30), int(y - 30))
+        # self.pinky_image.setVisible(True)
+        # print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+        # self.pinky_image.move(int(x - 30), int(y - 30))
+        x = max(30, min(x, self.mapper.img_width - 30))
+        y = max(30, min(y, self.mapper.img_height - 30))
+        
+        if not self.pinky_image.isVisible():
+            self.pinky_image.move(int(x - 30), int(y - 30))
+            self.pinky_image.setVisible(True)
+        else:
+            self.pinky_image.move(int(x - 30), int(y - 30))
+ 
     
     def send_boarding_request(self):
         vehicle_id = UserSession.get_taxi_id()

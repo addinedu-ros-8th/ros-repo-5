@@ -27,6 +27,7 @@ class ChargeWindow(QMainWindow):
         super().__init__()
         uic.loadUi(self.get_ui_path("Charge.ui"), self)
         self.left_money_manager = LeftMoneyManager(self.LeftMoney)
+        self.move(1400, 100) 
         
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()

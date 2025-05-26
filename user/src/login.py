@@ -21,7 +21,8 @@ class LoginWindow(QMainWindow):
         super().__init__()
         uic.loadUi("ui/Login.ui", self)
         self.LogIn.clicked.connect(self.login)
-
+        self.move(1400, 100) 
+        
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()
 

@@ -30,6 +30,8 @@ class MainWindow(QMainWindow, from_class):
         self.start_location = None
         self.end_location = None
         self.socket = None
+        self.move(1400, 100) 
+   
 
 
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
@@ -85,17 +87,17 @@ class MainWindow(QMainWindow, from_class):
         self.hide()
 
 
-    # def reset_taxi_ids(self, taxi_ids):
-    #     """
-    #     서버로 지정된 택시 ID 초기화 요청 (reset_taxi)
-    #     """
-    #     for taxi_id in taxi_ids:
-    #         reset_data = {"vehicle_id": taxi_id}
-    #         response = self.api_manager.send_post_request("/reset_taxi", reset_data)
-    #         if response and response.get("status") == "reset complete":
-    #             print(f"[INFO] 택시 {taxi_id} 초기화 완료.")
-    #         else:
-    #             print(f"[ERROR] 택시 {taxi_id} 초기화에 실패했습니다.")
+    def reset_taxi_ids(self, taxi_ids):
+        """
+        서버로 지정된 택시 ID 초기화 요청 (reset_taxi)
+        """
+        for taxi_id in taxi_ids:
+            reset_data = {"vehicle_id": taxi_id}
+            response = self.api_manager.send_post_request("/reset_taxi", reset_data)
+            if response and response.get("status") == "reset complete":
+                print(f"[INFO] 택시 {taxi_id} 초기화 완료.")
+            else:
+                print(f"[ERROR] 택시 {taxi_id} 초기화에 실패했습니다.")
 
 
     def send_selected_location(self):
@@ -156,28 +158,28 @@ class MainWindow(QMainWindow, from_class):
 
                 else:
                     print(f"[ERROR] 서버 오류 또는 응답 처리 문제: {response.get('message')}")
-                    print("[ERROR] 디버깅 -> taxi_id =2.")
-                    from call import CallWindow
-                    taxi_id=2
-                    UserSession.set_taxi_id(taxi_id)
-                    self.call_window = CallWindow(
-                        self.icon_handler.start_icon.objectName(),
-                        self.icon_handler.destination_icon.objectName(),
-                    )
-                    self.call_window.show()
-                    self.close()
+                    # print("[ERROR] 디버깅 -> taxi_id =2.")
+                    # from call import CallWindow
+                    # taxi_id=2
+                    # UserSession.set_taxi_id(taxi_id)
+                    # self.call_window = CallWindow(
+                    #     self.icon_handler.start_icon.objectName(),
+                    #     self.icon_handler.destination_icon.objectName(),
+                    # )
+                    # self.call_window.show()
+                    # self.close()
             else:
                 print("[ERROR] 서버 응답을 수신할 수 없습니다.")
-                print("[ERROR] 디버깅 -> taxi_id =2.")
-                from call import CallWindow
-                taxi_id=2
-                UserSession.set_taxi_id(taxi_id)
-                self.call_window = CallWindow(
-                    self.icon_handler.start_icon.objectName(),
-                    self.icon_handler.destination_icon.objectName(),
-                )
-                self.call_window.show()
-                self.close()
+                # print("[ERROR] 디버깅 -> taxi_id =2.")
+                # from call import CallWindow
+                # taxi_id=2
+                # UserSession.set_taxi_id(taxi_id)
+                # self.call_window = CallWindow(
+                #     self.icon_handler.start_icon.objectName(),
+                #     self.icon_handler.destination_icon.objectName(),
+                # )
+                # self.call_window.show()
+                # self.close()
         else:
             QMessageBox.warning(self, "에러", "출발지와 목적지를 선택해주세요.")
 

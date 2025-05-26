@@ -26,6 +26,8 @@ class DrivingWindow(QMainWindow):
         super().__init__()
         uic.loadUi(self.get_ui_path("3_driving.ui"), self)
         self.mapper = mapper
+        self.move(1400, 100) 
+        
 
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()
@@ -136,13 +138,21 @@ class DrivingWindow(QMainWindow):
     #---------------------------------------------------------------------------
 
     def update_pinky_position(self, x, y):
+        # if not self.pinky_image.isVisible():
+        #     self.pinky_image.move(int(x - 30), int(y - 30))
+        #     self.pinky_image.setVisible(True)
+        # else:
+        #     print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+        #     # self.pinky_image.move(int(x - 30), int(y - 30))
+        #     self.animate_pinky_move(x, y)
+        x = max(30, min(x, self.mapper.img_width - 30))
+        y = max(30, min(y, self.mapper.img_height - 30))
+        
         if not self.pinky_image.isVisible():
             self.pinky_image.move(int(x - 30), int(y - 30))
             self.pinky_image.setVisible(True)
         else:
-            print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
-            # self.pinky_image.move(int(x - 30), int(y - 30))
-            self.animate_pinky_move(x, y)
+            self.animate_pinky_move(x - 30, y - 30)
 
 
     def switch_to_end_window(self):

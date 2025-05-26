@@ -166,9 +166,6 @@ class IconHandler(QObject):
         return None, None
 
     def get_coordinates(self, icon):
-        """
-        아이콘의 좌표 가져오기 (예제 좌표 설정)
-        """
         coordinates = {
             "Icon1": (0.262, 0.161),
             "Icon2": (0.17, 0.217),

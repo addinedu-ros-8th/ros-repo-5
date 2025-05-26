@@ -26,6 +26,8 @@ class EndWindow(QMainWindow):
         self.ChargeBtn.clicked.connect(self.show_charge_page)
         self.left_money_manager = LeftMoneyManager(self.LeftMoney) 
         self.CheckBtn.clicked.connect(self.send_landing_request)
+        self.move(1400, 100) 
+        
 
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()
@@ -77,9 +79,18 @@ class EndWindow(QMainWindow):
         self.pinky_image.raise_()  # 맨 앞에 위치
 
     def update_pinky_position(self, x, y):
-        self.pinky_image.setVisible(True)
-        print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
-        self.pinky_image.move(int(x - 30), int(y - 30))
+        # self.pinky_image.setVisible(True)
+        # print("[DEBUG] RidingWindow에서 받은 위치:", x, y)
+        # self.pinky_image.move(int(x - 30), int(y - 30))
+
+        x = max(30, min(x, self.mapper.img_width - 30))
+        y = max(30, min(y, self.mapper.img_height - 30))
+        
+        if not self.pinky_image.isVisible():
+            self.pinky_image.move(int(x - 30), int(y - 30))
+            self.pinky_image.setVisible(True)
+        else:
+            self.pinky_image.move(int(x - 30), int(y - 30))
 
 
 
