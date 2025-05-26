@@ -42,10 +42,10 @@ cd ros-repo-5
 
 | 이름      |직책            | 역할                                                              |
 |----------|--------------|----------------------------------------------------------------------|
-|송원준     |  팀장         | 프로젝트 관리, AI 서버, 주행 알고리즘   |
-| 김규환    |  부팀장       | Controll 서버, 택시 하드웨어 개발     |
-| 임승연 | 팀원       | User GUI 설계 및 구현, 문서 작성           |
-| 권빛  | 팀원      |Admin GUI 설계 및 구현, PPT 제작       |
+|**송원준**     |  팀장         | 프로젝트 관리, AI 서버, 주행 알고리즘   |
+|**김규환**    |  부팀장       | Controll 서버, 택시 하드웨어 개발     |
+| **임승연** | 팀원       | User GUI 설계 및 구현, 문서 작성           |
+| **권빛**  | 팀원      |Admin GUI 설계 및 구현, PPT 제작       |
 
 
 
@@ -69,6 +69,12 @@ cd ros-repo-5
 ![resized_new_map_image](https://github.com/user-attachments/assets/83374665-4ebb-4d8b-8f70-051cb18f922a)
 
 
+## 하드웨어 구성
+
+
+![image](https://github.com/user-attachments/assets/03cc7b37-cff1-4342-962a-4808ec283f3c)
+
+
 
 
 
@@ -77,18 +83,6 @@ cd ros-repo-5
 
 ![image](https://github.com/user-attachments/assets/92708ccb-ac1b-48c2-bd47-dd7078b3ebec)
 
-
-
-### SW 
-
-
-![image](https://github.com/user-attachments/assets/78cee545-554b-4b81-a23f-ba409a018311)
-
-
-### HW 
-
-
-![image](https://github.com/user-attachments/assets/07c17994-c21f-47a7-bcdf-2979d1ece7a3)
 
 
 ###  ER Diagram
@@ -102,34 +96,8 @@ cd ros-repo-5
 ![image](https://github.com/user-attachments/assets/ca1c4f47-835c-474c-9f4d-1099546a6280)
 
 
-### Sequence Diagram
-
-
-#### 배차 성공
-
-
-![image](https://github.com/user-attachments/assets/5378cadc-bae1-491f-9b2d-605c61af8c19)
-
-
-
-#### 배차 실패
-
-
-![image](https://github.com/user-attachments/assets/79d5483a-8535-4126-bfa9-1f90f7d58f59)
-
-
-#### 운행
-
-
-![image](https://github.com/user-attachments/assets/01600b19-2cca-4052-bf67-6c62983b1302)
-
-
-
-
-## GUI
-
-
-### USER GUI 
+### Scenario
+![image](https://github.com/user-attachments/assets/365a0f81-5276-4045-b227-e21132cb264b)
 
 
 
