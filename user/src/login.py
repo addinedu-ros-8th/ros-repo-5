@@ -23,6 +23,8 @@ class LoginWindow(QMainWindow):
         self.LogIn.clicked.connect(self.login)
         self.move(1400, 100) 
         
+        self.pw.setEchoMode(QLineEdit.EchoMode.Password)
+        
         # REST API 클라이언트 생성
         self.api_manager = RestAPIManager()
 
