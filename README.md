@@ -38,7 +38,7 @@ cd ros-repo-5
 
 ## 팀원 구성 
 
-![img_0598_720](https://github.com/user-attachments/assets/dcc011fb-e212-46aa-b757-7aa63b7eb8c5)
+
 
 | 이름      |직책            | 역할                                                              |
 |----------|--------------|----------------------------------------------------------------------|
@@ -151,6 +151,7 @@ cd ros-repo-5
 ## 시연 영상 
 
 ### 도로주행
+![20250526_100820 (2) (1) (1)](https://github.com/user-attachments/assets/57b0e955-eec1-4318-acdf-24ab07268314)
 
 
 
