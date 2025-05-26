@@ -214,9 +214,11 @@ cd ros-repo-5
 
 
 #### User GUI 
+![inshot_20250526_200214602_360](https://github.com/user-attachments/assets/bfb439c8-d3cd-4453-ba72-65f05d613b27)
 
 
 #### Admin GUI 
+![inshot_20250526_200105044_360](https://github.com/user-attachments/assets/9e21d2f6-fca3-45ce-9e66-96d887ec4815)
 
 
 
