@@ -1,4 +1,4 @@
-
+![inshot_20250526_204540804_360](https://github.com/user-attachments/assets/45b55198-de3c-4fb3-843d-9dc94085b210)![inshot_20250526_204540804_360](https://github.com/user-attachments/assets/9e624b25-5c5d-4e9a-8882-d76e04b6d56c)
 ![ChatGPT Image May 26, 2025, 12_52_15 PM (2)](https://github.com/user-attachments/assets/c25695b5-e296-4e4e-bf4c-d24439e6fe5e)
 
 
@@ -26,14 +26,6 @@
 
 
 
-### 실행 
-
-
-```bash
-git clone https://github.com/addinedu-ros-8th/ros-repo-5.git
-cd ros-repo-5
-```
-
 
 
 ## 팀원 구성 
@@ -43,7 +35,7 @@ cd ros-repo-5
 | 이름      |직책            | 역할                                                              |
 |----------|--------------|----------------------------------------------------------------------|
 |**송원준**     |  팀장         | AI 서버 구현, 주행 알고리즘 개발, 딥러닝 모델 학습   |
-|**김규환**    |  부팀장       | Controll 서버, 택시 좌석 펌웨어 개발, 베치 알고리즘 개발     |
+|**김규환**    |  부팀장       | Control 서버, 택시 좌석 펌웨어 개발, 베치 알고리즘 개발     |
 | **임승연** | 팀원       |  GUI 설계 및 구현, 딥러닝 모델 학습, 문서 작성           |
 | **권빛**  | 팀원      |딥러닝 모델 학습, Admin GUI 설계 및 구현, PPT 제작       |
 
@@ -89,11 +81,6 @@ cd ros-repo-5
 
 ![image](https://github.com/user-attachments/assets/da6ef441-e304-48df-93ff-41911cb7e79d)
 
-
-
-### State Diagram
-
-![image](https://github.com/user-attachments/assets/15ec0a18-9d41-436a-becf-59848c2e5cb2)
 
 
 ### Scenario
@@ -165,7 +152,7 @@ cd ros-repo-5
 
 
 **시나리오 요약:**  
-로그인 → 배차 → 승차 → 운행 → 하차 →  보행자 감지
+로그인 → 배차 → 승차 → 운행 → 하차 
 
 
 
@@ -257,6 +244,28 @@ cd ros-repo-5
 ### Admin GUI 
 ![inshot_20250526_203327755_360](https://github.com/user-attachments/assets/c1f483d3-9e7e-4cb2-87a4-c508ebb5728c)
 
+
+-------
+## 돌발 상황 발생 
+
+
+
+### 1. 보행자 
+![inshot_20250526_203704698_360](https://github.com/user-attachments/assets/c5720eaf-8dae-4e57-95cb-6da453d2a9c5)
+
+
+#### Admin GUI 
+![inshot_20250526_204217249_360](https://github.com/user-attachments/assets/4fcd5f54-f375-4efd-b78e-82c3e8f3285c)
+
+
+
+### 2. 빨간불 정지 
+![InShot_20250526_204540804 (1)](https://github.com/user-attachments/assets/52e4abfa-5b28-4e00-8c1f-16d39dffe4bc)
+
+
+
+#### Admin GUI 
+![InShot_20250526_204217249](https://github.com/user-attachments/assets/9ee705d3-3561-4778-84ab-83def3930001)
 
 
 
