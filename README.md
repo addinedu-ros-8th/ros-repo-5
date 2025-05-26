@@ -165,7 +165,7 @@ cd ros-repo-5
 
 
 **시나리오 요약:**  
-로그인 → 배차 → 승차 → 운행 → 보행자 감지 → 하차
+로그인 → 배차 → 승차 → 운행 → 하차 →  보행자 감지
 
 
 
@@ -232,15 +232,8 @@ cd ros-repo-5
 ![InShot_20250526_200105044](https://github.com/user-attachments/assets/1bf073c3-948e-46ed-be65-f74a203a3676)
 
 
-## 5. 보행자 감지 
 
-
-
-#### Admin GUI 
-
-
-
-## 6. 하차 
+## 5. 하차 
 ![운행-하차 (online-video-cutter com) (1)](https://github.com/user-attachments/assets/66a2d876-113e-4028-824b-c64e30794e76)
 
 
@@ -252,6 +245,14 @@ cd ros-repo-5
 
 #### Admin GUI 
 ![InShot_20250526_200844079](https://github.com/user-attachments/assets/d45e0382-70d8-4615-8be6-5f8ad20ae787)
+
+
+
+## 6. 보행자 감지 
+
+
+### Admin GUI 
+
 
 
 
