@@ -104,15 +104,19 @@ cd ros-repo-5
 ## 딥러닝 자율 주행 기술 
 
 ### 차선 감지 모델 
+![image](https://github.com/user-attachments/assets/4745f14b-aa7f-4d70-a0f9-a8142c6a4c42)
 
-* YOLOv8 Segmantation
+
+* **YOLOv8 Segmantation**
 * 도로 속 흰색 실선, 중앙선, 흰색 점선 탐지
 * 차선 인식 후 중앙점 기준으로 주행 
 
 
 ### 도로 객체 탐지 기능
+![image](https://github.com/user-attachments/assets/055e1bd1-aa85-468d-87ac-d94e10864da7)
 
-* YOLOv8 detection 활용
+
+* **YOLOv8 detection** 활용
 * 도로 속 정지선, 횡단보도 탐지
 * 맵 위 신호등 표지판, 보행자 탐지 후 정지
 
@@ -121,11 +125,11 @@ cd ros-repo-5
 ![image_720](https://github.com/user-attachments/assets/f7d6882e-94cb-436e-91e8-0e69036ddf39)
 
 
-1. 맵 Waypoint 생성 후 노드화 및 연결
-2. 천장의 웹캠이 보는 맵 속 노드의 좌표 생성
-3. 택시 상단에 AruCo 마커 부착
+1. 맵 **Waypoint** 생성 후 **노드화** 및 연결
+2. 천장의 웹캠이 보는 맵 속 **노드의 좌표** 생성
+3. 택시 상단에 **AruCo 마커** 부착
 4. 실시간으로 노드와 택시의 좌표를 송수신하며 경로 탐색
-5. A* 알고리즘으로 최적경로 탐색 
+5. **A*알고리즘**으로 **최적경로** 탐색 
 
 
 
