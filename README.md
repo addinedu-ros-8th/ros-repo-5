@@ -4,6 +4,8 @@
 
 # **Autonomous System: ADDIN 🚖 TAXI**
 
+
+
 **자율주행 로봇** 택시 프로젝트 **ADDIN TAXI**
 
 
@@ -37,6 +39,13 @@ cd ros-repo-5
 ## 팀원 구성 
 
 
+
+| 이름      |직책            | 역할                                                              |
+|----------|--------------|----------------------------------------------------------------------|
+|송원준     |  팀장         | 프로젝트 관리, AI 서버, 주행 알고리즘   |
+| 김규환    |  부팀장       | Controll 서버, 택시 하드웨어 개발     |
+| 임승연 | 팀원       | User GUI 설계 및 구현, 문서 작성           |
+| 권빛  | 팀원      |Admin GUI 설계 및 구현, PPT 제작       |
 
 
 
@@ -82,11 +91,46 @@ cd ros-repo-5
 ![image](https://github.com/user-attachments/assets/07c17994-c21f-47a7-bcdf-2979d1ece7a3)
 
 
+###  ER Diagram
+
+![image](https://github.com/user-attachments/assets/da6ef441-e304-48df-93ff-41911cb7e79d)
+
+
+
+### State Diagram
+
+![image](https://github.com/user-attachments/assets/ca1c4f47-835c-474c-9f4d-1099546a6280)
+
+
+### Sequence Diagram
+
+
+#### 배차 성공
+
+
+![image](https://github.com/user-attachments/assets/5378cadc-bae1-491f-9b2d-605c61af8c19)
+
+
+
+#### 배차 실패
+
+
+![image](https://github.com/user-attachments/assets/79d5483a-8535-4126-bfa9-1f90f7d58f59)
+
+
+#### 운행
+
+
+![image](https://github.com/user-attachments/assets/01600b19-2cca-4052-bf67-6c62983b1302)
 
 
 
 
-## UI
+## GUI
+
+
+### USER GUI 
+
 
 
 
