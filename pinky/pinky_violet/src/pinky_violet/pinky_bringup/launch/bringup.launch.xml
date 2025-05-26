@@ -1,0 +1,26 @@
+<launch>
+  <arg name="namespace" default="taxi2"/>
+  <arg name="use_sim_time" default="False"/>
+  <arg name="motor_ratio" default="1.0"/>
+
+  <include file="$(find-pkg-share pinky_description)/launch/upload.launch.xml">
+    <arg name="use_sim_time" value="$(var use_sim_time)"/>
+  </include>
+
+  <include file="$(find-pkg-share sllidar_ros2)/launch/sllidar_c1_launch.py">
+    <arg name="namespace" value="$(var namespace)"/>
+  </include>
+
+  <include file="$(find-pkg-share ros2_icm20948)/icm20948_node_launch.py">
+    <arg name="namespace" value="$(var namespace)"/>
+  </include>
+
+  <node pkg="pinky_bringup" exec="pinky_bringup" namespace="$(var namespace)">
+    <param name="motor_ratio" value="$(var motor_ratio)"/>
+  </node>
+
+  <!-- <node pkg="pinky_bringup" exec="camera" namespace="$(var namespace)" /> -->
+
+  <node pkg="pinky_bringup" exec="pinky_battery_publiser" namespace="$(var namespace)" />
+  <node pkg="pinky_bringup" exec="tcp_bridge_node" namespace="$(var namespace)" />
+</launch>

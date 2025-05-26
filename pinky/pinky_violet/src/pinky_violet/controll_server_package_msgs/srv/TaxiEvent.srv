@@ -1,0 +1,5 @@
+int32 vehicle_id
+int32 event_type
+string data 
+---
+bool result
