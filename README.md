@@ -154,8 +154,12 @@ cd ros-repo-5
 ![20250526_100820 (2) (1) (1)](https://github.com/user-attachments/assets/57b0e955-eec1-4318-acdf-24ab07268314)
 
 
+
+## 전체 시나리오 
+
 ### 1. 로그인 
 ![image_720](https://github.com/user-attachments/assets/7f16303d-f904-47b1-a2f0-b71405cd185a)
+
 
 
 
@@ -175,7 +179,7 @@ cd ros-repo-5
 
 
 
-### 승차 
+### 3. 승차 
 
 
 
