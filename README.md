@@ -132,8 +132,10 @@ cd ros-repo-5
 5. **A*알고리즘**으로 **최적경로** 탐색 
 
 
+
 ### 택시 배차 할당 방식 
 ![image](https://github.com/user-attachments/assets/7a3989a3-de0e-4f08-bb65-bd6dba94a0d0)
+
 
 #### **승객 인원**
 **5명 이상** -> 승합차 
@@ -145,7 +147,7 @@ cd ros-repo-5
 
 
 #### 거리 기반
-출발지 최근접 택시
+출발지 **최근접** 택시
 
 
 ## 시연 영상 
