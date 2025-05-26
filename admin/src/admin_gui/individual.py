@@ -17,19 +17,19 @@ from icon_coordination_for_individual import CoordinateMapper
 
 ICON_HALF = 30 
 
-IP = "192.168.1.3"
+IP = "192.168.1.4"
 PORT_MAP= {
     1: 9001,
-    2: 9000
+    2: 9001
 }
 
 COORD_TO_NAME = {
-    (0.213, 0.112): "애드인에듀 학원",
-    (0.17, 0.17): "기억할게!술집",
-    (-0.026, -0.026): "내 거친 생각 정신과",
-    (-0.069, 0.015): "불안한 눈빛 안과",
-    (0.77, 0.065): "신라호텔",
-    (0.068, 0.071): "월드컵 경기장",
+    (0.262, 0.161): "애드인에듀 학원",
+    (0.17, 0.217): "기억할게!술집",
+    (-0.015, -0.078): "내 거친 생각 정신과",
+    (-0.045, 0.021): "불안한 눈빛 안과",
+    (0.08, 0.069): "신라호텔",
+    (0.1, 0.097): "월드컵 경기장",
     (0.0, 0.0) : "대기 중"
 }
 
@@ -97,6 +97,7 @@ class IndividualWindow(QMainWindow):
         super().__init__()
         uic.loadUi("individual.ui", self)
         self.vehicle_id = vehicle_id
+        styled = lambda text: f'<span style="font-size:16pt; font-weight:600;">{text}</span>'
         self.Vehicle_ID.setText(f"{vehicle_id}")
         self.Map.setFixedSize(521, 351) 
         self.parent_main_window = parent_main_window
@@ -177,6 +178,9 @@ class IndividualWindow(QMainWindow):
         start_name = COORD_TO_NAME.get(tuple(msg.start), "알 수 없음")
         dest_name = COORD_TO_NAME.get(tuple(msg.destination), "알 수 없음")
         self.record_text.setText(f"출발지: {start_name} / 목적지: {dest_name}")
+        if start_name == "대기 중":
+            self.record_text.setText(f"대기 중")
+ 
 
     def update_battery_visual(self, percent: float):
         base_x, base_y = 10, 540       

@@ -15,7 +15,9 @@ from controll_server_package_msgs.msg import TaxiState
 from Icon_coordinates_for_main import CoordinateMapper
 from ros_manager import init_ros, update_callback, is_ros_initialized
 
-
+from geometry_msgs.msg import Twist
+from rclpy.node import Node
+from rclpy.executors import MultiThreadedExecutor
 
 
 
@@ -26,6 +28,17 @@ sys.stderr = open(os.devnull, 'w')
 QLoggingCategory.setFilterRules("*.debug=false\n*.warning=false\n*.critical=false\n*.fatal=false")
 
 global_ros_node = None
+
+class CmdVelSubscriber(Node):
+    def __init__(self, vehicle_id: int, gui_callback):
+        super().__init__(f'cmd_vel_listener_{vehicle_id}')
+        self.vehicle_id = vehicle_id
+        self.subscription = self.create_subscription(
+            Twist,
+            f'/cmd_vel/taxi{vehicle_id}',  # ex: /cmd_vel/taxi1
+            lambda msg: gui_callback(self.vehicle_id, msg),  # ✅ 수정
+            10
+        )
 
 
 class RosSubscriberNode(Node):
@@ -79,6 +92,8 @@ class AdminMainWindow(QMainWindow):
         self.scene = QGraphicsScene()
         self.graphicsView_map.setScene(self.scene)
         print("[DEBUG] Scene 설정 완료")
+        
+        ros_spin_cmd_vel_only(self)
    
 
         self.button_log.clicked.connect(self.log_click)
@@ -152,6 +167,7 @@ class AdminMainWindow(QMainWindow):
             self.label_pinky1_log_2.setText(styled(f"탑승자: {msg.passenger_count}명"))
 
         self.update_taxi_summary()
+      
 
 
 
@@ -229,9 +245,38 @@ class AdminMainWindow(QMainWindow):
         self.label_drivingTaxi.setText(f"운행 중: {driving}")
         self.label_waitingTaxi.setText(f"대기 중: {idle}")
         self.label_chargingTaxi.setText(f"충전 중: {charging}")
+        
+    def update_cmd_vel(self, vehicle_id: int, msg: Twist):
+        lin_x = msg.linear.x
+        ang_z = msg.angular.z
+        styled = lambda text: f'<span style="font-size:16pt; font-weight:600;">{text}</span>'
+        text = f"속도: {lin_x:.2f} m/s"
+        
+        if vehicle_id == 1 and hasattr(self, 'label_pinky1_speed'):
+            self.label_pinky1_speed.setText(styled(text))
+        elif vehicle_id == 2 and hasattr(self, 'label_pinky2_speed'):
+            self.label_pinky2_speed.setText(styled(text))
 
-            
-            
+def ros_spin_cmd_vel_only(gui):
+    """
+    기존 TaxiState는 ros_manager.py가 관리.
+    여기서는 cmd_vel/1, cmd_vel/2만 따로 ROS 노드로 관리.
+    """
+    if not rclpy.ok():  # ✅ 이미 init돼있다면 생략
+        rclpy.init()
+
+    cmd_vel_node1 = CmdVelSubscriber(1, gui.update_cmd_vel)
+    cmd_vel_node2 = CmdVelSubscriber(2, gui.update_cmd_vel)
+
+    executor = MultiThreadedExecutor()
+    executor.add_node(cmd_vel_node1)
+    executor.add_node(cmd_vel_node2)
+
+    thread = threading.Thread(target=executor.spin, daemon=True)
+    thread.start()
+
+    gui.cmd_vel_nodes = [cmd_vel_node1, cmd_vel_node2]
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

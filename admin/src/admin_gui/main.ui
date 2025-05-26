@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1215</width>
-    <height>655</height>
+    <height>729</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,9 +61,9 @@
     <property name="geometry">
      <rect>
       <x>970</x>
-      <y>140</y>
+      <y>130</y>
       <width>241</width>
-      <height>251</height>
+      <height>281</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -83,6 +83,13 @@
       <widget class="QLabel" name="label_pinky1_status">
        <property name="text">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;운행 상태: 대기&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_pinky1_speed">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;속도: 0 cm/s&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -113,9 +120,9 @@
     <property name="geometry">
      <rect>
       <x>970</x>
-      <y>400</y>
+      <y>420</y>
       <width>241</width>
-      <height>251</height>
+      <height>301</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -142,6 +149,13 @@
       <widget class="QLabel" name="label_pinky2_battery">
        <property name="text">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;배터리: 0%&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_pinky2_speed">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;속도: 0 cm/s&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
