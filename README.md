@@ -150,7 +150,7 @@ cd ros-repo-5
 
 ## 시연 
 
-### 전체 시연 영상 
+### 전체 기본 시나리오 영상 
 ![전체 시나리오영상 (1)](https://github.com/user-attachments/assets/e4e8ba72-f14f-4b78-83ba-c86b161ac5a2)
 
 
@@ -161,7 +161,7 @@ cd ros-repo-5
 
 
 
-# 전체 시나리오 
+# 전체 시나리오 주행
 
 
 **시나리오 요약:**  
