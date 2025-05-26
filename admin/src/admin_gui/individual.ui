@@ -39,29 +39,6 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>10</y>
-       <width>151</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>17</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>ADDIN TAXI </string>
-     </property>
-     <property name="textFormat">
-      <enum>Qt::AutoText</enum>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="lineEdit">
      <property name="geometry">
       <rect>
@@ -121,18 +98,25 @@
     <widget class="QLabel" name="Vehicle_ID">
      <property name="geometry">
       <rect>
-       <x>260</x>
+       <x>110</x>
        <y>10</y>
-       <width>151</width>
+       <width>301</width>
        <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <pointsize>17</pointsize>
+       <pointsize>16</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel{
+font-size:16pt;
+color: #000000;  
+ font-weight: bold;
+}</string>
      </property>
      <property name="text">
       <string/>
@@ -515,7 +499,7 @@
    <widget class="QLabel" name="passenger">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>220</x>
       <y>550</y>
       <width>211</width>
       <height>101</height>

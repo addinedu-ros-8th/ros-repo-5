@@ -61,7 +61,7 @@ class AdminMainWindow(QMainWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi("main.ui", self)
+        uic.loadUi("/home/lim/git/ros-repo-5/admin/src/admin_gui/main.ui", self)
         self.latest_positions = {}   # 택시별 최신 위치 저장 (px, py)
         # self.animations = {} 
         self.taxi_states = {}  # vehicle_id → state 저장용 딕셔너리

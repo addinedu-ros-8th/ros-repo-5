@@ -98,7 +98,7 @@ class IndividualWindow(QMainWindow):
         uic.loadUi("individual.ui", self)
         self.vehicle_id = vehicle_id
         styled = lambda text: f'<span style="font-size:16pt; font-weight:600;">{text}</span>'
-        self.Vehicle_ID.setText(f"{vehicle_id}")
+        self.Vehicle_ID.setText(f"Taxi {vehicle_id}")
         self.Map.setFixedSize(521, 351) 
         self.parent_main_window = parent_main_window
         self.Battery_remain.setVisible(False)
@@ -109,7 +109,7 @@ class IndividualWindow(QMainWindow):
             "ready": "대기 중",
             "dispatch": "배차 중",
             "drive_start": "출발지로 이동 중",
-            "boarded": "승객 승차 중",
+            "boarding": "승객 승차 중",
             "drive_destination": "목적지 이동 중",
             "landing": "승객 하차 중",
             "completed": "운행 및 하차 완료",

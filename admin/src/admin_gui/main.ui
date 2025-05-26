@@ -244,10 +244,17 @@ QGraphicsView#graphicsView_map {
      </property>
      <property name="font">
       <font>
-       <pointsize>13</pointsize>
+       <pointsize>16</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel{
+font-size:16pt;
+color: #000000;  
+ font-weight: bold;
+}</string>
      </property>
      <property name="text">
       <string>ADDIN TAXI</string>

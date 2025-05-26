@@ -13,7 +13,7 @@ import cv2
 import requests
 from qt_material import apply_stylesheet
 
-API_SERVER_IP = "192.168.1.4"
+API_SERVER_IP = "192.168.1.3"
 API_SERVER_PORT = 8000
 
 # stderr (경고 메시지) 출력 차단
