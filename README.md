@@ -38,7 +38,7 @@ cd ros-repo-5
 
 ## 팀원 구성 
 
-
+![img_0598_720](https://github.com/user-attachments/assets/dcc011fb-e212-46aa-b757-7aa63b7eb8c5)
 
 | 이름      |직책            | 역할                                                              |
 |----------|--------------|----------------------------------------------------------------------|
@@ -147,7 +147,7 @@ cd ros-repo-5
 
 ------
 
-![img_0598_720](https://github.com/user-attachments/assets/dcc011fb-e212-46aa-b757-7aa63b7eb8c5)
+
 
 
 
