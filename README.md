@@ -154,6 +154,9 @@ cd ros-repo-5
 ![전체 시나리오영상 (1)](https://github.com/user-attachments/assets/e4e8ba72-f14f-4b78-83ba-c86b161ac5a2)
 
 
+### 도로 주행 영상 
+![20250526_100820 (2) (1) (1)](https://github.com/user-attachments/assets/ccc3c3b0-9e1b-4965-91ca-d70eed3e0951)
+
 
 
 
