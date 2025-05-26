@@ -205,8 +205,10 @@ cd ros-repo-5
 
 
 
-### 4. 운행 ~ 하차
-![운행-하차](https://github.com/user-attachments/assets/070e3c4f-bdd6-4ea7-ae07-8e801c9953c5)
+### 4. 운행 
+
+![운행-하차 (online-video-cutter com)](https://github.com/user-attachments/assets/937a82ae-4e88-45fe-af5d-e663761775d3)
+
 
 
 
