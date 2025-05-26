@@ -93,7 +93,7 @@ cd ros-repo-5
 
 ### State Diagram
 
-![image](https://github.com/user-attachments/assets/ca1c4f47-835c-474c-9f4d-1099546a6280)
+![image](https://github.com/user-attachments/assets/15ec0a18-9d41-436a-becf-59848c2e5cb2)
 
 
 ### Scenario
