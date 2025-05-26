@@ -104,16 +104,20 @@ class commandPublisher(Node):
         return (cx, cy)
 
     def draw_target_visualization(self, image, w, h, middle, border, dotted):
+        # 실험적으로 추정된 차선 폭 (픽셀)
+        lane_width_px = 64  # 또는 동적으로 계산해도 됨
+
         target = None
         if middle and border:
             target = ((middle[0] + border[0]) / 2, (middle[1] + border[1]) / 2)
         elif middle:
-            target = (middle[0] + 160, middle[1])
+            target = (middle[0] + lane_width_px / 2, middle[1])  # 오른쪽 차선 기준, 왼쪽으로 중심 보정
         elif border:
-            target = (border[0] - 160, border[1])
+            target = (border[0] - lane_width_px / 2, border[1])  # 왼쪽 차선 기준, 오른쪽으로 중심 보정
         elif dotted:
             target = dotted
 
+        # 시각화 동일
         if middle:
             cv2.circle(image, (int(middle[0]), int(middle[1])), 5, (0, 255, 255), -1)
             cv2.putText(image, "middle", (int(middle[0])-20, int(middle[1])-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,255), 2)
@@ -129,6 +133,7 @@ class commandPublisher(Node):
             robot_pos = (int(w // 2), h - 10)
             cv2.arrowedLine(image, robot_pos, (int(target[0]), int(target[1])), (255, 100, 200), 2, tipLength=0.2)
         return image, target
+
 
     def lane_keeping(self, frame):
         h, w = frame.shape[:2]
@@ -180,6 +185,7 @@ class commandPublisher(Node):
             self.get_logger().warn("LIDAR 정보 수신 전이므로 obstacle_avoidance 스킵")
             return frame, self.base_speed
         
+        pedestrian_detected = False
         stopline_detected = False
         stopline_y_threshold = frame.shape[0] * 0.7
 
@@ -238,30 +244,29 @@ class commandPublisher(Node):
                     if stopline_detected:
                         self.stop_flag = True
                         self.get_logger().info(f'Stopping robot: {class_name} with stopline detected')
+
                     else:
                         self.stop_flag = True
                         self.get_logger().info(f'{class_name} detected')
                         break
 
-
-                elif class_name == 'crosswalk' and not self.stop_flag:
-                    self.base_speed = 0.3
-                    self.get_logger().info('crosswalk detected')
-
-                # 보행자 또는 핑키: 50m 이내 정지
-                elif class_name in ['pedestrian', 'pinky'] and distance < 20.0 and self.stop_flag:
-                    self.stop_flag = True
-                    self.get_logger().info(f'Stopping robot: {class_name} within 20cm')
-
-                elif detected_classes not in ['pedestrian', 'pinky'] and self.stop_flag:
-                    self.stop_flag = False
-                    self.base_speed = 0.5
+                elif class_name == 'crosswalk' and self.stop_flag:
+                    if not pedestrian_detected:
+                        self.stop_flag = False
+                        self.base_speed = 0.3
+                        self.get_logger().info('crosswalk detected')
 
                 # 파란불 감지 시 이동
-                elif class_name == 'greenlight' and self.stop_flag:
+                elif class_name == 'greenlight':
                     self.stop_flag = False
                     self.base_speed = 0.5
                     self.get_logger().info('green light detected')
+
+                 # 보행자 또는 핑키: 50m 이내 정지
+                elif class_name in ['pedestrian', 'pinky'] and distance < 1.6:
+                    pedestrian_detected = True
+                    self.stop_flag = True
+                    self.get_logger().info(f'Stopping robot: {class_name} within 20cm')
                 
                 # 속도 제한 표지판
                 elif class_name == 'speedlimit_30' and not self.stop_flag:
@@ -311,6 +316,8 @@ class commandPublisher(Node):
         self.publisher.publish(msg)
 
         self.get_logger().info(f"linear_x = {msg.linear_x}, offset = {msg.offset}")
+
+        self.video_sender.send_frame(annotate_frame)
 
         cv2.imshow(f'vehicle_{self.vehicle_id}', annotate_frame)
         cv2.waitKey(1)
