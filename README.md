@@ -249,10 +249,23 @@ cd ros-repo-5
 
 
 ## 6. 보행자 감지 
+![image](https://github.com/user-attachments/assets/2e67ce0b-9e19-4e48-8e7e-a1ca8f3b72a5)
+
+
 
 
 ### Admin GUI 
+![inshot_20250526_203327755_360](https://github.com/user-attachments/assets/c1f483d3-9e7e-4cb2-87a4-c508ebb5728c)
 
+
+
+
+--------
+
+
+
+## 테스트 결과 
+![image_720](https://github.com/user-attachments/assets/f9b61b66-be5d-4688-a211-fd0cab756eaf)
 
 
 
