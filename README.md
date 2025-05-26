@@ -7,8 +7,11 @@
 **자율주행 로봇** 택시 프로젝트 **ADDIN TAXI**
 
 ```bash
-git clone 
+git clone https://github.com/addinedu-ros-8th/ros-repo-5.git
+cd ros-repo-5
 ```
+
+
 
 ## 프로젝트 개요
 
