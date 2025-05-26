@@ -148,43 +148,62 @@ cd ros-repo-5
 
 
 
-## 시연 영상 
+## 시연 
 
 ### 도로주행
 ![20250526_100820 (2) (1) (1)](https://github.com/user-attachments/assets/57b0e955-eec1-4318-acdf-24ab07268314)
 
 
+### 1. 로그인 
+![image_720](https://github.com/user-attachments/assets/7f16303d-f904-47b1-a2f0-b71405cd185a)
 
 
-### 배차 
+
+### 2. 배차 
+
+
 
 
 #### User GUI 
 
 
+
 #### Admin GUI 
+
+
+
 
 
 
 ### 승차 
 
 
+
+
 #### User GUI 
 
 
+
 #### Admin GUI 
+
+
 
 
 ### 운행 
 
+
 #### User GUI 
 
 
 #### Admin GUI 
 
 
+
 ### 하차 
+
+
 #### User GUI 
+
 
 
 #### Admin GUI 
