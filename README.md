@@ -161,15 +161,15 @@ cd ros-repo-5
 
 
 
-## 전체 시나리오 
+# 전체 시나리오 
 
-### 1. 로그인 
+## 1. 로그인 
 ![image_720](https://github.com/user-attachments/assets/7f16303d-f904-47b1-a2f0-b71405cd185a)
 
 
 
 
-### 2. 배차 
+## 2. 배차 
 ![대기-호출-배차](https://github.com/user-attachments/assets/b167e83d-d2f4-4c28-81da-830c12213d94)
 
 
@@ -190,7 +190,7 @@ cd ros-repo-5
 
 
 
-### 3. 승차 
+## 3. 승차 
 
 ![승객 승차](https://github.com/user-attachments/assets/cc3500fd-ff15-4d94-a65c-1f669a81be39)
 
@@ -222,7 +222,7 @@ cd ros-repo-5
 
 
 
-### 5. 하차 
+## 5. 하차 
 ![운행-하차 (online-video-cutter com) (1)](https://github.com/user-attachments/assets/66a2d876-113e-4028-824b-c64e30794e76)
 
 
