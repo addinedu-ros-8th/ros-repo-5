@@ -220,6 +220,8 @@ cd ros-repo-5
 
 
 ### 5. 하차 
+![운행-하차 (online-video-cutter com) (1)](https://github.com/user-attachments/assets/66a2d876-113e-4028-824b-c64e30794e76)
+
 
 
 #### User GUI 
