@@ -9,6 +9,7 @@
 **자율주행 로봇** 택시 프로젝트 **ADDIN TAXI**
 
 
+발표자료: https://docs.google.com/presentation/d/1XA90woXX_UxF4J6yrNlVXjFepoHr6ieWv1rlPA4FRZk/edit?usp=drive_link
 
 ## 개발 환경 및 기술 스택
 
